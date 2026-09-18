@@ -2,20 +2,29 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
-# ----------------- AUTH SCHEMAS -----------------
+# ----------------- AUTH & USER SCHEMAS -----------------
 class UserRegister(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
+    mobile_number: Optional[str] = Field(None, max_length=25)
     password: str = Field(..., min_length=6)
+    company: Optional[str] = "Enterprise"
+    role: Optional[str] = "Data Analyst"  # Student, Data Analyst, Business Analyst, Data Scientist, Manager, Admin
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: Optional[str] = None  # Accepts email or mobile number
     password: str
 
 class UserResponse(BaseModel):
     id: int
     name: str
     email: EmailStr
+    mobile_number: Optional[str] = None
+    company: Optional[str] = "Enterprise"
+    role: Optional[str] = "Data Analyst"
+    avatar_url: Optional[str] = None
+    is_verified: bool = True
+    is_active: bool = True
     created_at: datetime
 
     class Config:
@@ -25,6 +34,43 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+class UserUpdateProfile(BaseModel):
+    name: Optional[str] = None
+    mobile_number: Optional[str] = None
+    company: Optional[str] = None
+    role: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=6)
+
+
+# ----------------- OTP SCHEMAS -----------------
+class SendOTPRequest(BaseModel):
+    target: str  # mobile number or email
+    purpose: str = "registration"  # registration, login, forgot_password
+
+class VerifyOTPRequest(BaseModel):
+    target: str
+    otp_code: str = Field(..., min_length=6, max_length=6)
+    purpose: str = "registration"
+
+class OTPResponse(BaseModel):
+    success: bool
+    message: str
+    target: str
+    expires_in_seconds: int = 300
+    demo_otp: Optional[str] = None  # Provided in dev/demo mode for zero-friction testing
+
+class ForgotPasswordRequest(BaseModel):
+    target: str  # email or mobile
+
+class ResetPasswordWithOTPRequest(BaseModel):
+    target: str
+    otp_code: str = Field(..., min_length=6, max_length=6)
+    new_password: str = Field(..., min_length=6)
 
 
 # ----------------- DATASET SCHEMAS -----------------
@@ -46,10 +92,10 @@ class DatasetSummary(BaseModel):
         from_attributes = True
 
 class SampleDatasetRequest(BaseModel):
-    sample_key: str  # ecommerce, churn, housing, heart, traffic
+    sample_key: str  # sales_data, ecommerce, churn, housing, heart, traffic
 
 
-# ----------------- PROFILING SCHEMAS -----------------
+# ----------------- PROFILING & HEALTH SCHEMAS -----------------
 class NumericColumnStats(BaseModel):
     name: str
     dtype: str
@@ -145,7 +191,7 @@ class ExploreQueryRequest(BaseModel):
     page_size: int = 25
     search_query: Optional[str] = None
     sort_column: Optional[str] = None
-    sort_direction: Optional[str] = "asc" # asc, desc
+    sort_direction: Optional[str] = "asc"  # asc, desc
     conditions: Optional[List[FilterCondition]] = None
     selected_columns: Optional[List[str]] = None
 
@@ -160,7 +206,7 @@ class ExploreQueryResponse(BaseModel):
     data: List[Dict[str, Any]]
 
 
-# ----------------- VISUALIZATION SCHEMAS -----------------
+# ----------------- VISUALIZATION & KPI SCHEMAS -----------------
 class ChartRequest(BaseModel):
     chart_type: str  # bar, line, area, pie, scatter, histogram, boxplot, heatmap
     x_axis: str
@@ -176,6 +222,29 @@ class RecommendedChart(BaseModel):
     title: str
     reason: str
     score: float
+
+class KPICard(BaseModel):
+    key: str
+    title: str
+    value: str
+    numeric_value: float
+    prefix: str = ""
+    suffix: str = ""
+    change_pct: float
+    change_type: str = "increase"  # increase, decrease, neutral
+    trend_description: str
+    icon: str
+
+class DashboardOverviewResponse(BaseModel):
+    kpis: List[KPICard]
+    sales_trend: List[Dict[str, Any]]
+    revenue_analysis: List[Dict[str, Any]]
+    profit_trend: List[Dict[str, Any]]
+    target_vs_actual: List[Dict[str, Any]]
+    customer_distribution: List[Dict[str, Any]]
+    product_performance: List[Dict[str, Any]]
+    regional_performance: List[Dict[str, Any]]
+    monthly_growth: List[Dict[str, Any]]
 
 
 # ----------------- STATISTICAL & CORRELATION SCHEMAS -----------------
@@ -225,6 +294,30 @@ class AIInsightsResponse(BaseModel):
     generated_by: str  # heuristic_engine or llm_provider
 
 
+# ----------------- AI DATA CHAT SCHEMAS -----------------
+class AIChatRequest(BaseModel):
+    dataset_id: Optional[int] = None
+    message: str = Field(..., min_length=1)
+    session_id: Optional[int] = None
+
+class ChatMessageSchema(BaseModel):
+    id: int
+    sender: str
+    content: str
+    created_at: datetime
+    metadata_json: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
+
+class AIChatResponse(BaseModel):
+    session_id: int
+    message: str
+    sender: str = "ai"
+    suggested_queries: List[str] = []
+    related_metrics: Optional[Dict[str, Any]] = None
+
+
 # ----------------- ML STUDIO SCHEMAS -----------------
 class MLTaskDetectionResponse(BaseModel):
     suggested_task: str  # regression, classification, clustering, time_series
@@ -236,14 +329,14 @@ class MLTrainRequest(BaseModel):
     task_type: str  # regression, classification, clustering
     target_col: Optional[str] = None
     feature_cols: List[str]
-    model_types: Optional[List[str]] = None  # ['linear_regression', 'random_forest', ...]
+    model_types: Optional[List[str]] = None
     test_size: float = 0.2
     random_state: int = 42
 
 class MLModelResult(BaseModel):
     model_name: str
     task_type: str
-    metrics: Dict[str, Any]  # R2, RMSE, MAE or Accuracy, Precision, Recall, F1, ROC_AUC
+    metrics: Dict[str, Any]
     feature_importances: Optional[Dict[str, float]] = None
     confusion_matrix: Optional[List[List[int]]] = None
     class_labels: Optional[List[str]] = None
@@ -290,9 +383,9 @@ class ClusterProfile(BaseModel):
 class ClusteringResponse(BaseModel):
     n_clusters: int
     features_used: List[str]
-    elbow_data: Optional[List[Dict[str, Any]]] = None  # k vs inertia
+    elbow_data: Optional[List[Dict[str, Any]]] = None
     clusters: List[ClusterProfile]
-    pca_coordinates: List[Dict[str, Any]]  # x, y, cluster
+    pca_coordinates: List[Dict[str, Any]]
 
 
 # ----------------- FORECASTING SCHEMAS -----------------
@@ -300,7 +393,7 @@ class ForecastRequest(BaseModel):
     date_col: str
     target_col: str
     forecast_periods: int = 30
-    frequency: Optional[str] = "D"  # D, W, M
+    frequency: Optional[str] = "D"
 
 class ForecastResponse(BaseModel):
     date_col: str
@@ -324,7 +417,7 @@ class AnomalyResponse(BaseModel):
     anomaly_count: int
     anomaly_percentage: float
     anomalous_records: List[Dict[str, Any]]
-    pca_scatter: List[Dict[str, Any]]  # x, y, is_anomaly, anomaly_score
+    pca_scatter: List[Dict[str, Any]]
     top_reasons: List[str]
     ai_summary: str
 
@@ -338,3 +431,29 @@ class GenerateReportRequest(BaseModel):
     include_correlations: bool = True
     include_ai_insights: bool = True
     include_ml_results: bool = True
+
+
+# ----------------- ADMIN SCHEMAS -----------------
+class AdminOverviewResponse(BaseModel):
+    total_users: int
+    active_users: int
+    datasets_uploaded: int
+    total_analyses: int
+    ml_models_trained: int
+    reports_generated: int
+    system_health: str = "Operational"
+    cpu_usage_pct: float
+    memory_usage_pct: float
+    disk_free_gb: float
+
+class ActivityLogSchema(BaseModel):
+    id: int
+    user_id: Optional[int]
+    user_name: Optional[str]
+    action: str
+    details: Optional[str]
+    ip_address: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

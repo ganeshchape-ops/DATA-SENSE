@@ -7,7 +7,7 @@ from backend.app.api.deps import get_current_user
 from backend.app.services.dataset_service import read_dataset_df
 from backend.app.services.profiling_service import generate_dataset_profile
 
-router = APIRouter(prefix="/analytics", tags=["Profiling"])
+router = APIRouter(prefix="/profiling", tags=["Profiling"])
 
 @router.get("/profile/{dataset_id}", response_model=DatasetProfileResponse)
 def get_dataset_profile_endpoint(

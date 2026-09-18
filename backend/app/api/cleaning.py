@@ -8,7 +8,7 @@ from backend.app.services.dataset_service import read_dataset_df, save_df_to_dat
 from backend.app.services.cleaning_service import clean_dataset_df
 from backend.app.services.profiling_service import sanitize_float
 
-router = APIRouter(prefix="/analytics", tags=["Cleaning"])
+router = APIRouter(prefix="/cleaning", tags=["Cleaning"])
 
 @router.post("/clean/{dataset_id}", response_model=CleanDatasetResponse)
 def clean_dataset_endpoint(

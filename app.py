@@ -35,12 +35,12 @@ def open_browser(url: str):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     url = f"http://127.0.0.1:{port}"
-    print(f"\n========================================================")
-    print(f"  AI DataSense -- Enterprise Analytics Engine")
-    print(f"  Web App URL:   {url}")
+    print(f"\n==================================================================")
+    print(f"  AI Insight -- AI-Native Enterprise Predictive Analytics Platform")
+    print(f"  Web Dashboard: {url}")
     print(f"  Swagger Docs:  {url}/docs")
-    print(f"  ReDoc:         {url}/redoc")
-    print(f"========================================================\n")
+    print(f"  ReDoc Docs:    {url}/redoc")
+    print(f"==================================================================\n")
     
     # Auto-open browser in background
     threading.Thread(target=open_browser, args=(url,), daemon=True).start()

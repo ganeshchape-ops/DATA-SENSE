@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.app.core.config import settings, UPLOAD_DIR, REPORTS_DIR
 from backend.app.core.database import engine, Base
-import backend.app.models.db_models # Ensure all models are registered
+import backend.app.models.db_models  # Ensure all models are registered
 
 # API Routers
 from backend.app.api.auth import router as auth_router
@@ -19,10 +19,12 @@ from backend.app.api.visualization import router as vis_router
 from backend.app.api.statistics import router as stats_router
 from backend.app.api.correlation import router as corr_router
 from backend.app.api.ai_insights import router as ai_router
+from backend.app.api.ai_chat import router as ai_chat_router
 from backend.app.api.ml import router as ml_router
 from backend.app.api.forecasting import router as forecast_router
 from backend.app.api.anomaly import router as anomaly_router
 from backend.app.api.reports import router as reports_router
+from backend.app.api.admin import router as admin_router
 
 # Create Database tables
 Base.metadata.create_all(bind=engine)
@@ -30,7 +32,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Enterprise AI + Machine Learning + Data Analytics Platform",
+    description="AI-Native Enterprise Intelligence & Predictive Analytics Platform",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -66,18 +68,21 @@ app.include_router(vis_router, prefix=settings.API_V1_STR)
 app.include_router(stats_router, prefix=settings.API_V1_STR)
 app.include_router(corr_router, prefix=settings.API_V1_STR)
 app.include_router(ai_router, prefix=settings.API_V1_STR)
+app.include_router(ai_chat_router, prefix=settings.API_V1_STR)
 app.include_router(ml_router, prefix=settings.API_V1_STR)
 app.include_router(forecast_router, prefix=settings.API_V1_STR)
 app.include_router(anomaly_router, prefix=settings.API_V1_STR)
 app.include_router(reports_router, prefix=settings.API_V1_STR)
+app.include_router(admin_router, prefix=settings.API_V1_STR)
 
 @app.get("/api/health")
 def health_check():
     return {
         "status": "online",
         "service": settings.PROJECT_NAME,
+        "platform": settings.PROJECT_FULL_NAME,
         "version": settings.VERSION,
-        "engine": "FastAPI + Scikit-Learn + Pandas"
+        "engine": "FastAPI + Scikit-Learn + Pandas + SciPy"
     }
 
 frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"

@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DatasetProvider } from './context/DatasetContext';
 import { Navbar } from './components/common/Navbar';
 import { Sidebar } from './components/common/Sidebar';
+import { Footer } from './components/common/Footer';
+import { SplashScreen } from './components/common/SplashScreen';
+import { SearchModal } from './components/common/SearchModal';
+import { NotificationDrawer } from './components/common/NotificationDrawer';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
-import { Menu, X } from 'lucide-react';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { OtpVerificationPage } from './pages/OtpVerificationPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { UploadPage } from './pages/UploadPage';
 import { ProfilerPage } from './pages/ProfilerPage';
@@ -20,20 +25,35 @@ import { VisualizationPage } from './pages/VisualizationPage';
 import { StatisticsPage } from './pages/StatisticsPage';
 import { CorrelationPage } from './pages/CorrelationPage';
 import { AIInsightsPage } from './pages/AIInsightsPage';
+import { AIChatPage } from './pages/AIChatPage';
 import { MLStudioPage } from './pages/MLStudioPage';
 import { ForecastingPage } from './pages/ForecastingPage';
 import { AnomalyPage } from './pages/AnomalyPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { UserProfilePage } from './pages/UserProfilePage';
+import { AdminPage } from './pages/AdminPage';
 
-// Protected Dashboard Layout Wrapper
-const DashboardLayout: React.FC = () => {
+// Protected SaaS Dashboard Layout Wrapper
+const DashboardLayout: React.FC<{
+  onOpenSearch: () => void;
+  onOpenNotifications: () => void;
+  unreadCount: number;
+  isDarkMode: boolean;
+  onToggleDarkMode: () => void;
+}> = ({
+  onOpenSearch,
+  onOpenNotifications,
+  unreadCount,
+  isDarkMode,
+  onToggleDarkMode
+}) => {
   const { isAuthenticated, isLoading } = useAuth();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen message="Authenticating session..." />;
+    return <LoadingSpinner fullScreen message="Authenticating secure AI session..." />;
   }
 
   if (!isAuthenticated) {
@@ -41,67 +61,165 @@ const DashboardLayout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      <Navbar />
-
-      {/* Mobile Sidebar Toggle Button */}
-      <div className="lg:hidden p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-        <button
-          onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300"
-        >
-          {mobileSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          <span>{mobileSidebarOpen ? "Close Menu" : "Analytics Navigation"}</span>
-        </button>
-      </div>
+    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+      <Navbar
+        onOpenSearch={onOpenSearch}
+        onOpenNotifications={onOpenNotifications}
+        unreadNotificationsCount={unreadCount}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={onToggleDarkMode}
+        onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+      />
 
       <div className="flex-1 flex">
-        {/* Sidebar */}
+        {/* Sidebar Navigation */}
         <Sidebar
           mobileOpen={mobileSidebarOpen}
           onClose={() => setMobileSidebarOpen(false)}
         />
 
-        {/* Main Content Area */}
-        <main className="flex-1 p-4 lg:p-8 max-w-[1600px] w-full mx-auto overflow-x-hidden">
-          <Outlet />
-        </main>
+        {/* Main Application View Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 p-4 lg:p-8 max-w-[1600px] w-full mx-auto overflow-x-hidden">
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
       </div>
     </div>
   );
 };
 
 export const App: React.FC = () => {
+  const [showSplash, setShowSplash] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('ai_insight_theme') === 'dark';
+  });
+
+  const [notifications, setNotifications] = useState([
+    {
+      id: '1',
+      title: 'Enterprise Model Ready',
+      message: 'Random Forest AutoML training finished with 92.4% test accuracy.',
+      time: '5m ago',
+      type: 'prediction' as const,
+      unread: true,
+      link: '/ml',
+    },
+    {
+      id: '2',
+      title: 'Outlier Alerts Detected',
+      message: '18 transaction spikes identified via Isolation Forest engine.',
+      time: '25m ago',
+      type: 'anomaly' as const,
+      unread: true,
+      link: '/anomaly',
+    },
+    {
+      id: '3',
+      title: 'Executive PDF Generated',
+      message: 'Your multi-page analytics report has been compiled successfully.',
+      time: '1h ago',
+      type: 'report' as const,
+      unread: false,
+      link: '/reports',
+    },
+  ]);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('ai_insight_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('ai_insight_theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
+  const unreadCount = notifications.filter(n => n.unread).length;
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
   return (
     <AuthProvider>
       <DatasetProvider>
+        {/* Global Modals */}
+        <SearchModal
+          isOpen={searchOpen}
+          onClose={() => setSearchOpen(false)}
+        />
+        <NotificationDrawer
+          isOpen={notifOpen}
+          onClose={() => setNotifOpen(false)}
+          notifications={notifications}
+          onMarkAllAsRead={() => setNotifications(prev => prev.map(n => ({ ...n, unread: false })))}
+          onClearAll={() => setNotifications([])}
+        />
+
         <Routes>
-          {/* Public Landing & Auth Routes */}
+          {/* Public & Authentication Flow */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/verify-otp" element={<OtpVerificationPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-          {/* Protected Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="upload" element={<UploadPage />} />
-            <Route path="profile" element={<ProfilerPage />} />
-            <Route path="cleaning" element={<CleaningPage />} />
-            <Route path="explorer" element={<ExplorerPage />} />
-            <Route path="visualize" element={<VisualizationPage />} />
-            <Route path="statistics" element={<StatisticsPage />} />
-            <Route path="correlation" element={<CorrelationPage />} />
-            <Route path="ai-insights" element={<AIInsightsPage />} />
-            <Route path="ml-studio" element={<MLStudioPage />} />
-            <Route path="forecasting" element={<ForecastingPage />} />
-            <Route path="anomaly" element={<AnomalyPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="history" element={<HistoryPage />} />
-            <Route path="settings" element={<SettingsPage />} />
+          {/* Unified Application Layout */}
+          <Route
+            element={
+              <DashboardLayout
+                onOpenSearch={() => setSearchOpen(true)}
+                onOpenNotifications={() => setNotifOpen(true)}
+                unreadCount={unreadCount}
+                isDarkMode={isDarkMode}
+                onToggleDarkMode={toggleDarkMode}
+              />
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/upload" element={<UploadPage />} />
+            <Route path="/profile" element={<UserProfilePage />} />
+            <Route path="/profiler" element={<ProfilerPage />} />
+            <Route path="/cleaning" element={<CleaningPage />} />
+            <Route path="/explorer" element={<ExplorerPage />} />
+            <Route path="/visualization" element={<VisualizationPage />} />
+            <Route path="/statistics" element={<StatisticsPage />} />
+            <Route path="/correlation" element={<CorrelationPage />} />
+            <Route path="/insights" element={<AIInsightsPage />} />
+            <Route path="/chat" element={<AIChatPage />} />
+            <Route path="/ml" element={<MLStudioPage />} />
+            <Route path="/forecasting" element={<ForecastingPage />} />
+            <Route path="/anomaly" element={<AnomalyPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+
+            {/* Sub-route aliases */}
+            <Route path="/dashboard/upload" element={<UploadPage />} />
+            <Route path="/dashboard/profile" element={<ProfilerPage />} />
+            <Route path="/dashboard/cleaning" element={<CleaningPage />} />
+            <Route path="/dashboard/explorer" element={<ExplorerPage />} />
+            <Route path="/dashboard/visualize" element={<VisualizationPage />} />
+            <Route path="/dashboard/statistics" element={<StatisticsPage />} />
+            <Route path="/dashboard/correlation" element={<CorrelationPage />} />
+            <Route path="/dashboard/ai-insights" element={<AIInsightsPage />} />
+            <Route path="/dashboard/chat" element={<AIChatPage />} />
+            <Route path="/dashboard/ml-studio" element={<MLStudioPage />} />
+            <Route path="/dashboard/forecasting" element={<ForecastingPage />} />
+            <Route path="/dashboard/anomaly" element={<AnomalyPage />} />
+            <Route path="/dashboard/reports" element={<ReportsPage />} />
+            <Route path="/dashboard/history" element={<HistoryPage />} />
+            <Route path="/dashboard/settings" element={<SettingsPage />} />
           </Route>
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </DatasetProvider>
     </AuthProvider>

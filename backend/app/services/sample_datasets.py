@@ -3,6 +3,82 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
+def generate_sales_data_dataset(n_samples: int = 550) -> pd.DataFrame:
+    """
+    Generate realistic 500+ record Enterprise Sales Data for AI Insight platform.
+    Columns: Date, Product, Category, Region, Customer, Quantity, Sales, Cost, Profit, Discount, Rating
+    """
+    np.random.seed(42)
+    start_date = datetime(2025, 1, 1)
+    dates = [start_date + timedelta(days=int(i)) for i in np.random.randint(0, 365, size=n_samples)]
+    dates.sort()
+
+    categories = {
+        "Technology": ["AI Workstation", "Cloud Server", "Enterprise Router", "Neural Coprocessor", "4K Monitor"],
+        "Software": ["Analytics Suite Pro", "ML Studio License", "Data Pipeline ETL", "Security Shield", "BI Connector"],
+        "Services": ["AI Strategy Consulting", "Model Fine-Tuning", "Cloud Migration", "Managed Ops", "Data Profiling Audit"],
+        "Hardware": ["NVMe Storage Array", "Smart Sensor Hub", "Edge AI Gate", "Backup Power Unit", "Rack Mount Chassis"]
+    }
+    
+    regions = ["North America", "Europe", "Asia-Pacific", "Latin America", "Middle East"]
+    customers = [
+        "Acme Global", "Nexus Dynamics", "Quantum Solutions", "Apex Retail",
+        "Vertex Logistics", "Horizon Health", "Starlight Media", "Pinnacle Financial",
+        "CyberTech Systems", "Atlas Automations", "Echo Ventures", "Summit Cloud"
+    ]
+
+    data = []
+    cat_keys = list(categories.keys())
+
+    for i in range(n_samples):
+        cat = np.random.choice(cat_keys, p=[0.35, 0.30, 0.20, 0.15])
+        prod = np.random.choice(categories[cat])
+        region = np.random.choice(regions, p=[0.35, 0.25, 0.20, 0.12, 0.08])
+        customer = np.random.choice(customers)
+        quantity = int(np.random.choice([1, 2, 3, 4, 5, 8, 10, 15, 20], p=[0.30, 0.25, 0.18, 0.10, 0.07, 0.04, 0.03, 0.02, 0.01]))
+        
+        base_unit_price = {
+            "Technology": np.random.uniform(450, 2400),
+            "Software": np.random.uniform(250, 1800),
+            "Services": np.random.uniform(600, 3200),
+            "Hardware": np.random.uniform(180, 950)
+        }[cat]
+
+        discount = float(np.random.choice([0.0, 0.05, 0.10, 0.15, 0.20, 0.25], p=[0.35, 0.25, 0.20, 0.10, 0.07, 0.03]))
+        gross_sales = quantity * base_unit_price
+        sales = round(gross_sales * (1.0 - discount), 2)
+        
+        cost_margin = {
+            "Technology": np.random.uniform(0.55, 0.70),
+            "Software": np.random.uniform(0.15, 0.35),
+            "Services": np.random.uniform(0.35, 0.50),
+            "Hardware": np.random.uniform(0.60, 0.75)
+        }[cat]
+        
+        cost = round(sales * cost_margin, 2)
+        profit = round(sales - cost, 2)
+        rating = int(np.clip(np.random.normal(4.4 if profit > 300 else 3.8, 0.7), 1, 5))
+
+        data.append({
+            "Date": dates[i].strftime("%Y-%m-%d"),
+            "Product": prod,
+            "Category": cat,
+            "Region": region,
+            "Customer": customer,
+            "Quantity": quantity,
+            "Sales": sales,
+            "Cost": cost,
+            "Profit": profit,
+            "Discount": discount,
+            "Rating": rating
+        })
+
+    df = pd.DataFrame(data)
+    # Realistic mild missingness for cleaning demo
+    df.loc[df.sample(frac=0.02, random_state=42).index, "Discount"] = np.nan
+    df.loc[df.sample(frac=0.015, random_state=43).index, "Rating"] = np.nan
+    return df
+
 def generate_ecommerce_dataset(n_samples: int = 500) -> pd.DataFrame:
     """Generate realistic E-Commerce Sales, Margin & Customer Experience Dataset."""
     np.random.seed(42)
@@ -72,7 +148,6 @@ def generate_ecommerce_dataset(n_samples: int = 500) -> pd.DataFrame:
         })
         
     df = pd.DataFrame(data)
-    # Introduce small realistic missingness for cleaning demo
     df.loc[df.sample(frac=0.03, random_state=42).index, "Discount"] = np.nan
     df.loc[df.sample(frac=0.02, random_state=43).index, "Customer_Rating"] = np.nan
     return df
@@ -110,7 +185,6 @@ def generate_churn_dataset(n_samples: int = 450) -> pd.DataFrame:
         monthly = round(monthly + (8 if tech_support == "Yes" else 0) + (10 if streaming_tv == "Yes" else 0), 2)
         total_charges = round(monthly * tenure + np.random.normal(0, 15), 2)
         
-        # Churn probability logic
         churn_score = 0.2
         if contract == "Month-to-Month":
             churn_score += 0.35
@@ -166,7 +240,6 @@ def generate_housing_dataset(n_samples: int = 400) -> pd.DataFrame:
         parking = int(np.random.choice([0, 1, 2, 3], p=[0.3, 0.4, 0.25, 0.05]))
         furnish = np.random.choice(furnishing, p=[0.3, 0.45, 0.25])
         
-        # Valuation logic
         base_price = 150000 + (area * 95) + (bedrooms * 18000) + (bathrooms * 24000) + (stories * 15000)
         if main_road == "yes":
             base_price += 25000
@@ -221,7 +294,6 @@ def generate_heart_dataset(n_samples: int = 350) -> pd.DataFrame:
         oldpeak = round(float(np.clip(np.random.exponential(1.0), 0.0, 6.2)), 1)
         slope = np.random.choice(["Upsloping", "Flat", "Downsloping"], p=[0.45, 0.45, 0.10])
         
-        # Disease probability
         risk = 0.35
         if sex == "Male":
             risk += 0.12
@@ -271,7 +343,6 @@ def generate_traffic_forecasting_dataset(n_days: int = 180) -> pd.DataFrame:
     
     for i, date in enumerate(dates):
         day_of_week = date.weekday()
-        # Weekend boost or dip
         weekend_mult = 0.82 if day_of_week in [5, 6] else 1.08
         trend = base_visitors + (i * trend_slope)
         seasonal = np.sin(2 * np.pi * i / 7) * 450 + np.cos(2 * np.pi * i / 30) * 300
@@ -299,6 +370,7 @@ def generate_traffic_forecasting_dataset(n_days: int = 180) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 SAMPLE_GENERATORS = {
+    "sales_data": ("Enterprise Sales, Cost & Profit Dataset (550+ Records)", generate_sales_data_dataset),
     "ecommerce": ("E-Commerce Sales & Profit Analytics", generate_ecommerce_dataset),
     "churn": ("Customer Churn & Retention Dataset", generate_churn_dataset),
     "housing": ("Real Estate Valuation & Housing Prices", generate_housing_dataset),

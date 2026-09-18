@@ -1,8 +1,9 @@
 import axios from 'axios';
 import type {
   User, Dataset, DatasetProfile, ExploreQueryResponse, RecommendedChart,
-  AIInsightsResponse, CorrelationResponse, HypothesisTestResponse,
-  MLTrainResponse, MLPredictResponse, ClusteringResponse, ForecastResponse, AnomalyResponse
+  DashboardOverviewResponse, AIInsightsResponse, CorrelationResponse, HypothesisTestResponse,
+  MLTrainResponse, MLPredictResponse, ClusteringResponse, ForecastResponse, AnomalyResponse,
+  AIChatMessage, AIChatResponse, AdminOverview, ActivityLog
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -16,27 +17,39 @@ export const apiClient = axios.create({
 
 // Request interceptor for Bearer token & optional custom AI key
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('datasense_token');
+  const token = localStorage.getItem('ai_insight_token') || localStorage.getItem('datasense_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  const customAiKey = localStorage.getItem('datasense_ai_key');
+  const customAiKey = localStorage.getItem('ai_insight_api_key');
   if (customAiKey) {
     config.headers['X-AI-Key'] = customAiKey;
   }
   return config;
 }, (error) => Promise.reject(error));
 
-// Auth APIs
+// Auth & Security APIs
 export const authApi = {
-  register: (data: { name: string; email: string; password: string }) =>
+  register: (data: { name: string; email: string; password: string; mobile_number?: string; company?: string; role?: string }) =>
     apiClient.post('/auth/register', data).then(r => r.data),
   login: (data: { email: string; password: string }) =>
     apiClient.post('/auth/login', data).then(r => r.data),
   demoLogin: () =>
     apiClient.post('/auth/demo').then(r => r.data),
+  sendOtp: (data: { target: string; purpose?: string }) =>
+    apiClient.post('/auth/send-otp', data).then(r => r.data),
+  verifyOtp: (data: { target: string; otp_code: string; purpose?: string }) =>
+    apiClient.post('/auth/verify-otp', data).then(r => r.data),
+  forgotPassword: (data: { target: string }) =>
+    apiClient.post('/auth/forgot-password', data).then(r => r.data),
+  resetPassword: (data: { target: string; otp_code: string; new_password: string }) =>
+    apiClient.post('/auth/reset-password', data).then(r => r.data),
   getMe: () =>
     apiClient.get<User>('/auth/me').then(r => r.data),
+  updateProfile: (data: Partial<User>) =>
+    apiClient.put<User>('/auth/profile', data).then(r => r.data),
+  changePassword: (data: { current_password: string; new_password: string }) =>
+    apiClient.post('/auth/change-password', data).then(r => r.data),
 };
 
 // Dataset APIs
@@ -49,7 +62,7 @@ export const datasetApi = {
     apiClient.post<Dataset>('/datasets/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }).then(r => r.data),
-  loadSample: (sample_key: string) =>
+  loadSample: (sample_key: string = 'sales_data') =>
     apiClient.post<Dataset>('/datasets/sample', { sample_key }).then(r => r.data),
   delete: (id: number) =>
     apiClient.delete(`/datasets/${id}`).then(r => r.data),
@@ -58,19 +71,21 @@ export const datasetApi = {
 // Analytics & Profiling APIs
 export const analyticsApi = {
   getProfile: (datasetId: number) =>
-    apiClient.get<DatasetProfile>(`/analytics/profile/${datasetId}`).then(r => r.data),
+    apiClient.get<DatasetProfile>(`/profiling/profile/${datasetId}`).then(r => r.data),
   clean: (datasetId: number, data: any) =>
-    apiClient.post(`/analytics/clean/${datasetId}`, data).then(r => r.data),
+    apiClient.post(`/cleaning/clean/${datasetId}`, data).then(r => r.data),
   explore: (datasetId: number, query: any) =>
-    apiClient.post<ExploreQueryResponse>(`/analytics/explore/${datasetId}`, query).then(r => r.data),
+    apiClient.post<ExploreQueryResponse>(`/explorer/explore/${datasetId}`, query).then(r => r.data),
   getCorrelation: (datasetId: number, method = 'pearson') =>
-    apiClient.get<CorrelationResponse>(`/analytics/correlation/${datasetId}?method=${method}`).then(r => r.data),
+    apiClient.get<CorrelationResponse>(`/correlation/matrix/${datasetId}?method=${method}`).then(r => r.data),
   runHypothesisTest: (datasetId: number, testData: any) =>
-    apiClient.post<HypothesisTestResponse>(`/analytics/hypothesis-test/${datasetId}`, testData).then(r => r.data),
+    apiClient.post<HypothesisTestResponse>(`/statistics/hypothesis-test/${datasetId}`, testData).then(r => r.data),
 };
 
-// Visualization APIs
+// Visualization & Dashboard APIs
 export const visApi = {
+  getOverview: (datasetId?: number) =>
+    apiClient.get<DashboardOverviewResponse>(datasetId ? `/visualization/overview/${datasetId}` : '/visualization/overview').then(r => r.data),
   getRecommendations: (datasetId: number) =>
     apiClient.get<RecommendedChart[]>(`/visualization/recommend/${datasetId}`).then(r => r.data),
   queryChart: (datasetId: number, chartReq: any) =>
@@ -81,6 +96,16 @@ export const visApi = {
 export const aiApi = {
   getInsights: (datasetId: number) =>
     apiClient.post<AIInsightsResponse>(`/ai/insights/${datasetId}`).then(r => r.data),
+};
+
+// AI Data Chat APIs
+export const chatApi = {
+  sendMessage: (data: { message: string; dataset_id?: number; session_id?: number }) =>
+    apiClient.post<AIChatResponse>('/chat/message', data).then(r => r.data),
+  getHistory: (datasetId: number) =>
+    apiClient.get<AIChatMessage[]>(`/chat/history/${datasetId}`).then(r => r.data),
+  clearHistory: (datasetId: number) =>
+    apiClient.delete(`/chat/clear/${datasetId}`).then(r => r.data),
 };
 
 // Machine Learning APIs
@@ -113,4 +138,16 @@ export const reportsApi = {
     apiClient.post(`/reports/generate/${datasetId}`, req).then(r => r.data),
   downloadUrl: (reportId: number) =>
     `${API_BASE_URL}/reports/download/${reportId}`,
+};
+
+// Admin APIs
+export const adminApi = {
+  getOverview: () =>
+    apiClient.get<AdminOverview>('/admin/overview').then(r => r.data),
+  getUsers: () =>
+    apiClient.get<User[]>('/admin/users').then(r => r.data),
+  toggleUserStatus: (userId: number) =>
+    apiClient.put(`/admin/users/${userId}/status`).then(r => r.data),
+  getLogs: () =>
+    apiClient.get<ActivityLog[]>('/admin/logs').then(r => r.data),
 };

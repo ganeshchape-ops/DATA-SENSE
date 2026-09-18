@@ -2,6 +2,12 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  mobile_number?: string;
+  company?: string;
+  role?: string;
+  avatar_url?: string;
+  is_verified?: boolean;
+  is_active?: boolean;
   created_at: string;
 }
 
@@ -112,6 +118,31 @@ export interface RecommendedChart {
   score: number;
 }
 
+export interface KPICardData {
+  key: string;
+  title: string;
+  value: string;
+  numeric_value: number;
+  prefix?: string;
+  suffix?: string;
+  change_pct: number;
+  change_type: 'increase' | 'decrease' | 'neutral';
+  trend_description: string;
+  icon: string;
+}
+
+export interface DashboardOverviewResponse {
+  kpis: KPICardData[];
+  sales_trend: { month: string; sales: number; orders: number }[];
+  revenue_analysis: { month: string; revenue: number; cost: number }[];
+  profit_trend: { month: string; profit: number; margin: number }[];
+  target_vs_actual: { period: string; actual: number; target: number; achievement: number }[];
+  customer_distribution: { segment: string; count: number; percentage: number; color: string }[];
+  product_performance: { product: string; revenue: number; share: number }[];
+  regional_performance: { region: string; sales: number; growth: number; share: number }[];
+  monthly_growth: { month: string; growth_rate: number }[];
+}
+
 export interface AIInsightSection {
   title: string;
   summary: string;
@@ -137,6 +168,25 @@ export interface AIInsightsResponse {
     threats: string[];
   };
   generated_by: string;
+}
+
+export interface AIChatMessage {
+  id: number;
+  sender: 'user' | 'ai';
+  content: string;
+  created_at: string;
+  metadata_json?: {
+    suggested_queries?: string[];
+    related_metrics?: Record<string, any>;
+  };
+}
+
+export interface AIChatResponse {
+  session_id: number;
+  message: string;
+  sender: string;
+  suggested_queries: string[];
+  related_metrics?: Record<string, any>;
 }
 
 export interface CorrelationPair {
@@ -239,4 +289,27 @@ export interface AnomalyResponse {
   pca_scatter: { x: number; y: number; is_anomaly: boolean; anomaly_score: number }[];
   top_reasons: string[];
   ai_summary: string;
+}
+
+export interface AdminOverview {
+  total_users: number;
+  active_users: number;
+  datasets_uploaded: number;
+  total_analyses: number;
+  ml_models_trained: number;
+  reports_generated: number;
+  system_health: string;
+  cpu_usage_pct: number;
+  memory_usage_pct: number;
+  disk_free_gb: number;
+}
+
+export interface ActivityLog {
+  id: number;
+  user_id?: number;
+  user_name?: string;
+  action: string;
+  details?: string;
+  ip_address?: string;
+  created_at: string;
 }

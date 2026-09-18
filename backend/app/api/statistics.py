@@ -7,7 +7,7 @@ from backend.app.api.deps import get_current_user
 from backend.app.services.dataset_service import read_dataset_df
 from backend.app.services.stats_service import compute_hypothesis_test
 
-router = APIRouter(prefix="/analytics", tags=["Statistics"])
+router = APIRouter(prefix="/statistics", tags=["Statistics"])
 
 @router.post("/hypothesis-test/{dataset_id}", response_model=HypothesisTestResponse)
 def run_hypothesis_test_endpoint(

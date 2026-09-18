@@ -10,7 +10,7 @@ from backend.app.api.deps import get_current_user
 from backend.app.services.dataset_service import read_dataset_df, detect_column_types
 from backend.app.services.profiling_service import sanitize_float
 
-router = APIRouter(prefix="/analytics", tags=["Data Explorer"])
+router = APIRouter(prefix="/explorer", tags=["Data Explorer"])
 
 @router.post("/explore/{dataset_id}", response_model=ExploreQueryResponse)
 def explore_dataset_endpoint(

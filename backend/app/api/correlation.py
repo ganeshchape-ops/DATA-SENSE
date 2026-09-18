@@ -7,9 +7,10 @@ from backend.app.api.deps import get_current_user
 from backend.app.services.dataset_service import read_dataset_df
 from backend.app.services.stats_service import compute_correlation_matrix
 
-router = APIRouter(prefix="/analytics", tags=["Correlation"])
+router = APIRouter(prefix="/correlation", tags=["Correlation"])
 
-@router.get("/correlation/{dataset_id}", response_model=CorrelationResponse)
+@router.get("/matrix/{dataset_id}", response_model=CorrelationResponse)
+@router.get("/{dataset_id}", response_model=CorrelationResponse)
 def get_correlation_endpoint(
     dataset_id: int,
     method: str = Query("pearson", pattern="^(pearson|spearman)$"),

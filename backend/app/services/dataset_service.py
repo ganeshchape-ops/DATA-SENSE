@@ -1,5 +1,6 @@
 import os
 import uuid
+import json
 from pathlib import Path
 from typing import Tuple, Dict, Any, List
 import pandas as pd
@@ -57,7 +58,7 @@ def detect_column_types(df: pd.DataFrame) -> Dict[str, str]:
     return col_types
 
 def read_dataset_df(file_path: str, file_type: str) -> pd.DataFrame:
-    """Read CSV or Excel safely with fallbacks."""
+    """Read CSV, Excel, or JSON safely with fallbacks."""
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail=f"Dataset file not found: {file_path}")
     
@@ -74,8 +75,23 @@ def read_dataset_df(file_path: str, file_type: str) -> pd.DataFrame:
             return pd.read_excel(file_path)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to parse Excel file: {str(e)}")
+    elif ext == "json":
+        try:
+            return pd.read_json(file_path)
+        except Exception as e:
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                return pd.DataFrame(data)
+            except Exception as e2:
+                raise HTTPException(status_code=400, detail=f"Failed to parse JSON file: {str(e2)}")
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported file format: {file_type}")
+
+def load_dataset_as_dataframe(file_path: str) -> pd.DataFrame:
+    """Helper to load any stored dataset file as a DataFrame."""
+    ext = Path(file_path).suffix.lower().replace(".", "")
+    return read_dataset_df(file_path, ext)
 
 def save_uploaded_file(upload_file: UploadFile) -> Tuple[str, str, int]:
     """Validate and save an uploaded file to the upload directory."""

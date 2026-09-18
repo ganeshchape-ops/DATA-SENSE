@@ -23,7 +23,17 @@ import uvicorn
 import threading
 import webbrowser
 import time
-from backend.app.main import app
+import socket
+
+def is_port_in_use(port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('127.0.0.1', port)) == 0
+
+def find_available_port(start_port: int = 8000, max_attempts: int = 20) -> int:
+    for port in range(start_port, start_port + max_attempts):
+        if not is_port_in_use(port):
+            return port
+    return start_port
 
 def open_browser(url: str):
     time.sleep(1.5)
@@ -33,7 +43,9 @@ def open_browser(url: str):
         pass
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
+    preferred_port = int(os.getenv("PORT", 8000))
+    port = find_available_port(preferred_port)
+    
     url = f"http://127.0.0.1:{port}"
     print(f"\n==================================================================")
     print(f"  AI Insight -- AI-Native Enterprise Predictive Analytics Platform")

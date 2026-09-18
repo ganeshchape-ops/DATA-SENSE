@@ -1,5 +1,12 @@
+import sys
 import os
 from pathlib import Path
+
+# Ensure project root is in sys.path when executed directly
+_root_dir = Path(__file__).resolve().parent.parent.parent
+if str(_root_dir) not in sys.path:
+    sys.path.insert(0, str(_root_dir))
+
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -99,3 +106,9 @@ if frontend_dist.exists():
         if full_path and file_path.is_file():
             return FileResponse(file_path)
         return FileResponse(frontend_dist / "index.html")
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    print(f"\nAI Insight running on http://127.0.0.1:{port}\n")
+    uvicorn.run("backend.app.main:app", host="127.0.0.1", port=port, reload=True)

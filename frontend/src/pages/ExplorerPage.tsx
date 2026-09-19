@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Binary, Search, Filter, ArrowUpDown, ChevronLeft, ChevronRight,
-  Download, Plus, Trash2, CheckCircle2, Columns, RefreshCw
+  Download, Plus, Trash2, CheckCircle2, Columns, RefreshCw,
+  Database, ArrowRight, Layers, Sparkles
 } from 'lucide-react';
 import { useDataset } from '../context/DatasetContext';
 import { analyticsApi } from '../services/api';
@@ -10,7 +11,7 @@ import { EmptyState } from '../components/common/EmptyState';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 export const ExplorerPage: React.FC = () => {
-  const { activeDataset } = useDataset();
+  const { activeDataset, profile } = useDataset();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [conditions, setConditions] = useState<FilterCondition[]>([]);
@@ -118,61 +119,74 @@ export const ExplorerPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const getColTypeBadge = (col: string) => {
+    const colType = (profile?.column_types?.[col] || activeDataset?.column_types?.[col] || '').toLowerCase();
+    if (colType.includes('int') || colType.includes('float') || colType.includes('numeric') || colType.includes('number')) {
+      return <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-300 border border-purple-500/25">NUM</span>;
+    }
+    if (colType.includes('date') || colType.includes('time')) {
+      return <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-300 border border-blue-500/25">DATE</span>;
+    }
+    return <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 border border-white/[0.06]">TXT</span>;
+  };
+
   if (!activeDataset) {
-    return <EmptyState title="No Dataset Selected" description="Select a dataset to explore and filter records interactively." />;
+    return <EmptyState title="No Dataset Yet" description="Upload your first dataset to start discovering intelligence." />;
   }
 
   const columns = queryData?.columns || activeDataset.column_names || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-16 animate-in-scale">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 rounded-3xl">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Binary className="w-5 h-5 text-indigo-400" />
-            Interactive Data Explorer
+          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5 mb-1">
+            <Binary className="w-3.5 h-3.5" /> High-Performance Grid
+          </span>
+          <h1 className="text-2xl font-black text-white tracking-tight">
+            Data Explorer
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Displaying <span className="text-white font-semibold">{queryData?.filtered_rows ?? 0}</span> of <span className="text-white font-semibold">{queryData?.total_rows ?? 0}</span> records
+          <p className="text-xs text-slate-400 mt-0.5">
+            Displaying <strong className="text-white font-mono">{queryData?.filtered_rows ?? 0}</strong> of <strong className="text-slate-300 font-mono">{queryData?.total_rows ?? 0}</strong> records • {activeDataset.name}
           </p>
         </div>
 
         <button
           onClick={handleExportCSV}
           disabled={!queryData || queryData.data.length === 0}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-all hover:scale-105"
+          className="btn-ai-secondary px-4 py-2 text-xs font-bold flex items-center gap-2 shrink-0"
         >
-          <Download className="w-3.5 h-3.5 text-indigo-400" />
-          Export Filtered CSV
+          <Download className="w-3.5 h-3.5 text-purple-400" />
+          <span>Export Filtered CSV</span>
         </button>
       </div>
 
       {/* Query Filter Builder Box */}
-      <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+      <div className="glass-card p-6 rounded-3xl space-y-4">
         {/* Search & Action Row */}
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search across all fields (e.g. Technology, California, 98052)..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              placeholder="Search across all fields..."
+              className="w-full pl-10 pr-4 py-2.5 bg-[#07090E] border border-white/[0.08] rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
             />
           </div>
           <button
             type="submit"
-            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/20"
+            className="w-full sm:w-auto px-5 py-2.5 btn-ai-primary text-xs font-bold"
           >
             Search Records
           </button>
         </form>
 
         {/* Condition Builder */}
-        <div className="border-t border-slate-800 pt-4">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+        <div className="border-t border-white/[0.06] pt-4">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
             Multi-Condition Expression Builder
           </span>
 
@@ -180,9 +194,9 @@ export const ExplorerPage: React.FC = () => {
             <select
               value={newCondCol}
               onChange={(e) => setNewCondCol(e.target.value)}
-              className="px-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+              className="px-3 py-2 bg-[#07090E] border border-white/[0.08] rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
             >
-              <option value="">Select Feature...</option>
+              <option value="">Select Column...</option>
               {activeDataset.column_names.map(col => (
                 <option key={col} value={col}>{col}</option>
               ))}
@@ -191,7 +205,7 @@ export const ExplorerPage: React.FC = () => {
             <select
               value={newCondOp}
               onChange={(e) => setNewCondOp(e.target.value)}
-              className="px-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+              className="px-3 py-2 bg-[#07090E] border border-white/[0.08] rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
             >
               <option value="gt">Greater Than (&gt;)</option>
               <option value="gte">Greater Than or Equal (&gt;=)</option>
@@ -207,14 +221,14 @@ export const ExplorerPage: React.FC = () => {
               type="text"
               value={newCondVal}
               onChange={(e) => setNewCondVal(e.target.value)}
-              placeholder="Filter Value (e.g. 50000)..."
-              className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              placeholder="Value (e.g. 75)..."
+              className="px-3 py-2 bg-[#07090E] border border-white/[0.08] rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
             />
 
             <button
               type="button"
               onClick={handleAddCondition}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all"
+              className="btn-ai-primary px-4 py-2 text-xs font-bold flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" /> Add Condition
             </button>
@@ -226,12 +240,12 @@ export const ExplorerPage: React.FC = () => {
               {conditions.map((cond, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-mono"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[11px] font-mono"
                 >
                   <b>{cond.column}</b> {cond.operator} <i>{String(cond.value)}</i>
                   <button
                     onClick={() => handleRemoveCondition(idx)}
-                    className="hover:text-rose-400 ml-1"
+                    className="hover:text-rose-400 ml-1 font-bold"
                   >
                     ×
                   </button>
@@ -242,44 +256,45 @@ export const ExplorerPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Interactive Table */}
-      <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
+      {/* Modern Data Table */}
+      <div className="glass-card p-6 rounded-3xl overflow-hidden">
         {loading ? (
           <LoadingSpinner message="Filtering Records..." />
         ) : queryData && queryData.data.length > 0 ? (
           <div className="space-y-4">
-            <div className="overflow-x-auto rounded-xl border border-slate-800 max-h-[500px]">
+            <div className="overflow-x-auto rounded-2xl border border-white/[0.06] max-h-[550px]">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-950 sticky top-0 z-10">
-                  <tr className="border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400">
-                    <th className="p-3 font-semibold text-slate-500 w-12 text-center">#</th>
+                <thead className="bg-[#0A0D15] sticky top-0 z-10">
+                  <tr className="border-b border-white/[0.08] text-[11px] uppercase tracking-wider text-slate-400">
+                    <th className="p-3.5 font-semibold text-slate-500 w-12 text-center">#</th>
                     {columns.map((col) => (
                       <th
                         key={col}
                         onClick={() => handleSort(col)}
-                        className="p-3 font-semibold cursor-pointer hover:text-white transition-colors select-none"
+                        className="p-3.5 font-semibold cursor-pointer hover:text-white transition-colors select-none"
                       >
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                           <span>{col}</span>
-                          <ArrowUpDown className={`w-3 h-3 ${sortColumn === col ? 'text-indigo-400' : 'text-slate-600'}`} />
+                          {getColTypeBadge(col)}
+                          <ArrowUpDown className={`w-3 h-3 ${sortColumn === col ? 'text-purple-400' : 'text-slate-600'}`} />
                         </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                <tbody className="divide-y divide-white/[0.04] font-mono text-[11px]">
                   {queryData.data.map((row, idx) => {
                     const rowNum = (page - 1) * pageSize + idx + 1;
                     return (
-                      <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="p-3 text-slate-500 text-center">{rowNum}</td>
+                      <tr key={idx} className="hover:bg-white/[0.03] transition-colors">
+                        <td className="p-3.5 text-slate-500 text-center">{rowNum}</td>
                         {columns.map((col) => {
                           const val = row[col];
                           const isNull = val === null || val === undefined;
                           return (
-                            <td key={col} className="p-3 text-slate-300 whitespace-nowrap">
+                            <td key={col} className="p-3.5 text-slate-300 whitespace-nowrap">
                               {isNull ? (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-sans">
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-400 border border-rose-500/25 font-sans">
                                   NaN
                                 </span>
                               ) : (
@@ -307,7 +322,7 @@ export const ExplorerPage: React.FC = () => {
                     setPage(1);
                     fetchData(1, newPs);
                   }}
-                  className="px-2 py-1 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white"
+                  className="px-2.5 py-1 bg-[#07090E] border border-white/[0.08] rounded-lg text-xs text-white"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -315,7 +330,7 @@ export const ExplorerPage: React.FC = () => {
                   <option value={100}>100</option>
                 </select>
                 <span>
-                  Page {page} of {queryData.total_pages}
+                  Page <strong className="text-white">{page}</strong> of <strong className="text-white">{queryData.total_pages}</strong>
                 </span>
               </div>
 
@@ -328,11 +343,11 @@ export const ExplorerPage: React.FC = () => {
                     }
                   }}
                   disabled={page <= 1}
-                  className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 disabled:opacity-40 text-slate-300 hover:text-white transition-colors"
+                  className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] disabled:opacity-30 text-slate-300 hover:text-white transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="px-3 py-1 font-semibold text-white bg-slate-950 border border-slate-800 rounded-lg">
+                <span className="px-3 py-1 font-semibold text-white bg-white/[0.06] border border-white/[0.08] rounded-lg">
                   {page}
                 </span>
                 <button
@@ -343,7 +358,7 @@ export const ExplorerPage: React.FC = () => {
                     }
                   }}
                   disabled={page >= queryData.total_pages}
-                  className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 disabled:opacity-40 text-slate-300 hover:text-white transition-colors"
+                  className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] disabled:opacity-30 text-slate-300 hover:text-white transition-colors"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -352,7 +367,7 @@ export const ExplorerPage: React.FC = () => {
           </div>
         ) : (
           <div className="p-8 text-center text-xs text-slate-500">
-            No matching records found for the applied search or filter conditions.
+            No matching records found for the applied filter conditions.
           </div>
         )}
       </div>

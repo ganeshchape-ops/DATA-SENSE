@@ -51,6 +51,11 @@ class Dataset(Base):
     columns = Column(Integer, default=0)
     column_names = Column(JSON, default=list)
     column_types = Column(JSON, default=dict)
+    domain = Column(String(50), default="generic")
+    domain_confidence = Column(Float, default=1.0)
+    domain_reason = Column(String(500), default="Standard structured tabular dataset")
+    domain_override = Column(String(50), nullable=True)
+    column_mapping = Column(JSON, default=dict)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 

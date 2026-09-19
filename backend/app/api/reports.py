@@ -26,10 +26,13 @@ def generate_report_endpoint(
     df = read_dataset_df(dataset.file_path, dataset.file_type)
     report_type = req.report_type.lower()
     
+    effective_domain = dataset.domain_override or dataset.domain or "generic"
+    mapping = dataset.column_mapping or {}
+
     if report_type == "pdf":
-        file_path = generate_pdf_report(df, dataset.id, dataset.name, req.title)
+        file_path = generate_pdf_report(df, dataset.id, dataset.name, req.title, domain_override=effective_domain, column_mapping=mapping)
     elif report_type == "excel":
-        file_path = generate_excel_report(df, dataset.id, dataset.name)
+        file_path = generate_excel_report(df, dataset.id, dataset.name, domain_override=effective_domain, column_mapping=mapping)
     elif report_type == "csv":
         file_path = dataset.file_path
     else:

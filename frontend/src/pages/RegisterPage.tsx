@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  BrainCircuit, Lock, Mail, User, Phone, Building2,
+  Lock, Mail, User, Phone, Building2,
   Briefcase, ArrowRight, AlertCircle, CheckCircle2, ShieldCheck
 } from 'lucide-react';
 import { authApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Logo } from '../components/common/Logo';
 
 export const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -100,15 +101,10 @@ export const RegisterPage: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-6">
           <Link to="/" className="inline-flex items-center gap-2.5 mb-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-              <BrainCircuit className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">
-              AI Insight
-            </span>
+            <Logo size="lg" />
           </Link>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Create Your Account</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <h2 className="text-2xl font-bold text-slate-900">Create Your Account</h2>
+          <p className="text-xs text-slate-500 mt-1">
             Join the AI-native predictive analytics platform
           </p>
         </div>

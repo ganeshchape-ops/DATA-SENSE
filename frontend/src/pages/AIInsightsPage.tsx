@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Brain, Sparkles, TrendingUp, AlertTriangle, CheckCircle2,
-  Lightbulb, ShieldCheck, Target, RefreshCw, Zap
+  Sparkles, TrendingUp, AlertTriangle, CheckCircle2,
+  Lightbulb, ShieldCheck, Target, RefreshCw, Zap, ArrowRight,
+  BrainCircuit, Shield
 } from 'lucide-react';
 import { useDataset } from '../context/DatasetContext';
 import { aiApi } from '../services/api';
@@ -34,7 +35,7 @@ export const AIInsightsPage: React.FC = () => {
   };
 
   if (!activeDataset) {
-    return <EmptyState title="No Dataset Selected" description="Please select a dataset to generate deep AI business insights." />;
+    return <EmptyState title="No Dataset Yet" description="Upload your first dataset to start discovering intelligence." />;
   }
 
   if (loading || !insights) {
@@ -42,72 +43,86 @@ export const AIInsightsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto pb-16 animate-in-scale">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-500/20 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 rounded-3xl">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <Brain className="w-5 h-5 text-indigo-400" />
-              AI Insights & Strategic Intelligence
-            </h1>
-            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              Automated
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Data-driven strategic synthesis generated for <span className="text-white font-semibold">{activeDataset.name}</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5 mb-1">
+            <Sparkles className="w-3.5 h-3.5" /> AI Synthesis Engine
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            AI Insights
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Intelligence discovered from your data • <strong className="text-slate-200">{activeDataset.name}</strong>
           </p>
         </div>
 
         <button
           onClick={loadInsights}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition-all hover:scale-105"
+          className="btn-ai-secondary px-3.5 py-2 text-xs font-bold flex items-center gap-1.5 shrink-0"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          Regenerate Insights
+          <RefreshCw className="w-3.5 h-3.5 text-purple-400" />
+          <span>Regenerate Insights</span>
         </button>
       </div>
 
-      {/* Executive Summary Card */}
-      <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 mb-2">
-          <Zap className="w-4 h-4" />
-          Executive Dataset Synthesis
+      {/* Executive Summary Dominant Card */}
+      <div className="glass-card-glow p-6 sm:p-8 rounded-3xl space-y-4 relative overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-300">
+            <Sparkles className="w-4 h-4" />
+            <span>✦ Executive Dataset Synthesis</span>
+          </div>
+          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" /> High Statistical Confidence
+          </span>
         </div>
-        <p className="text-sm text-slate-200 leading-relaxed font-sans">
+
+        <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-sans font-normal">
           {insights.executive_summary}
         </p>
-        <div className="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+
+        <div className="pt-3 border-t border-white/[0.08] text-xs text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <span>{insights.data_health_evaluation}</span>
-          <span className="text-emerald-400 font-semibold flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> High Statistical Power
-          </span>
+          <span className="text-purple-300 font-mono text-[11px]">Domain: {activeDataset.domain || 'Universal'}</span>
         </div>
       </div>
 
-      {/* Key Analytical Findings */}
+      {/* Large Insight Cards Section */}
       <div>
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-          1. Key Distribution & Cardinality Insights
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            ✦ Discovered Patterns & Relationships
+          </h2>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {insights.key_findings.map((kf, i) => (
-            <div key={i} className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between">
+            <div key={i} className="glass-card p-6 rounded-3xl flex flex-col justify-between group">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xs font-bold text-white">{kf.title}</h3>
-                  {kf.badge && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                      {kf.badge}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-purple-400">
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300">
+                      ✦ Pattern Detected
                     </span>
-                  )}
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                    Confidence: High
+                  </span>
                 </div>
-                <p className="text-xs text-slate-400 mb-3 leading-relaxed">{kf.summary}</p>
-                <div className="space-y-1.5">
+
+                <h3 className="text-sm font-bold text-white mb-2">{kf.title}</h3>
+                <p className="text-xs text-slate-400 mb-4 leading-relaxed">{kf.summary}</p>
+
+                <div className="space-y-2 p-3 rounded-2xl bg-[#07090E]/60 border border-white/[0.06]">
                   {kf.bullet_points.map((bp, j) => (
                     <p key={j} className="text-xs text-slate-300 flex items-start gap-2">
-                      <span className="text-indigo-400 font-bold">•</span>
+                      <span className="text-purple-400 font-bold">•</span>
                       <span>{bp}</span>
                     </p>
                   ))}
@@ -118,42 +133,46 @@ export const AIInsightsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Trends & Anomalies Grid */}
+      {/* Trends & Anomaly Risks Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Identified Trends */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400">
+        <div className="glass-card p-6 rounded-3xl space-y-4">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 border-b border-white/[0.06] pb-3">
             <TrendingUp className="w-4 h-4" />
-            2. Identified Trends & Temporal Momentum
+            <span>Identified Trends & Momentum</span>
           </div>
 
           <div className="space-y-3">
             {insights.identified_trends.map((tr, i) => (
-              <div key={i} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div key={i} className="p-4 rounded-2xl bg-[#07090E]/60 border border-white/[0.06] space-y-2">
                 <h4 className="text-xs font-bold text-white">{tr.title}</h4>
                 <p className="text-xs text-slate-400">{tr.summary}</p>
                 {tr.bullet_points.map((bp, j) => (
-                  <p key={j} className="text-[11px] text-slate-300">✓ {bp}</p>
+                  <p key={j} className="text-[11px] text-slate-300 flex items-center gap-1.5">
+                    <span className="text-emerald-400">✓</span> {bp}
+                  </p>
                 ))}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Anomalies & Integrity Risks */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
+        {/* Anomalies & Data Integrity Risks */}
+        <div className="glass-card p-6 rounded-3xl space-y-4">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400 border-b border-white/[0.06] pb-3">
             <AlertTriangle className="w-4 h-4" />
-            3. Anomalies & Data Integrity Risks
+            <span>Anomalies & Integrity Risks</span>
           </div>
 
           <div className="space-y-3">
             {insights.anomalies_and_risks.map((ar, i) => (
-              <div key={i} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div key={i} className="p-4 rounded-2xl bg-[#07090E]/60 border border-white/[0.06] space-y-2">
                 <h4 className="text-xs font-bold text-white">{ar.title}</h4>
                 <p className="text-xs text-slate-400">{ar.summary}</p>
                 {ar.bullet_points.map((bp, j) => (
-                  <p key={j} className="text-[11px] text-slate-300">⚠ {bp}</p>
+                  <p key={j} className="text-[11px] text-slate-300 flex items-center gap-1.5">
+                    <span className="text-amber-400">⚠</span> {bp}
+                  </p>
                 ))}
               </div>
             ))}
@@ -163,17 +182,17 @@ export const AIInsightsPage: React.FC = () => {
 
       {/* Strategic SWOT Analysis */}
       {insights.swot_analysis && (
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 mb-4">
+        <div className="glass-card p-6 rounded-3xl space-y-4">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-400 border-b border-white/[0.06] pb-3">
             <Target className="w-4 h-4" />
-            4. Strategic SWOT Synthesis
+            <span>Strategic SWOT Synthesis</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Strengths */}
-            <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/20">
+            <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20">
               <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">Strengths (S)</h4>
-              <ul className="space-y-1 text-xs text-slate-300">
+              <ul className="space-y-1.5 text-xs text-slate-300">
                 {insights.swot_analysis.strengths.map((s, i) => (
                   <li key={i} className="flex items-start gap-1.5">
                     <span className="text-emerald-400 font-bold">+</span>
@@ -184,9 +203,9 @@ export const AIInsightsPage: React.FC = () => {
             </div>
 
             {/* Weaknesses */}
-            <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-500/20">
+            <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-500/20">
               <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider mb-2">Weaknesses (W)</h4>
-              <ul className="space-y-1 text-xs text-slate-300">
+              <ul className="space-y-1.5 text-xs text-slate-300">
                 {insights.swot_analysis.weaknesses.map((w, i) => (
                   <li key={i} className="flex items-start gap-1.5">
                     <span className="text-rose-400 font-bold">-</span>
@@ -197,9 +216,9 @@ export const AIInsightsPage: React.FC = () => {
             </div>
 
             {/* Opportunities */}
-            <div className="p-4 rounded-xl bg-blue-950/20 border border-blue-500/20">
+            <div className="p-4 rounded-2xl bg-blue-950/20 border border-blue-500/20">
               <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">Opportunities (O)</h4>
-              <ul className="space-y-1 text-xs text-slate-300">
+              <ul className="space-y-1.5 text-xs text-slate-300">
                 {insights.swot_analysis.opportunities.map((o, i) => (
                   <li key={i} className="flex items-start gap-1.5">
                     <span className="text-blue-400 font-bold">★</span>
@@ -210,9 +229,9 @@ export const AIInsightsPage: React.FC = () => {
             </div>
 
             {/* Threats */}
-            <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-500/20">
+            <div className="p-4 rounded-2xl bg-amber-950/20 border border-amber-500/20">
               <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">Threats & Risks (T)</h4>
-              <ul className="space-y-1 text-xs text-slate-300">
+              <ul className="space-y-1.5 text-xs text-slate-300">
                 {insights.swot_analysis.threats.map((t, i) => (
                   <li key={i} className="flex items-start gap-1.5">
                     <span className="text-amber-400 font-bold">!</span>
@@ -225,18 +244,15 @@ export const AIInsightsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Strategic Recommendations Cards */}
+      {/* Actionable Strategic Recommendations */}
       <div>
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-          5. Actionable Strategic Recommendations
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-1.5">
+          <Lightbulb className="w-4 h-4 text-purple-400" /> Actionable Recommendations
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {insights.strategic_recommendations.map((rec, i) => (
-            <div key={i} className="p-5 rounded-2xl bg-slate-900/80 border border-indigo-500/20">
-              <div className="flex items-center gap-2 mb-2">
-                <Lightbulb className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-white">{rec.title}</h3>
-              </div>
+            <div key={i} className="glass-card p-6 rounded-3xl border border-purple-500/20">
+              <h3 className="text-xs font-bold text-white mb-2">{rec.title}</h3>
               <p className="text-xs text-slate-400 mb-3 leading-relaxed">{rec.summary}</p>
               <div className="space-y-1.5">
                 {rec.bullet_points.map((bp, j) => (

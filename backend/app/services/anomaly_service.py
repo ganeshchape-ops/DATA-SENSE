@@ -8,7 +8,7 @@ from backend.app.schemas.api_schemas import AnomalyRequest, AnomalyResponse
 from backend.app.services.profiling_service import sanitize_float
 
 def detect_dataset_anomalies(df: pd.DataFrame, req: AnomalyRequest) -> AnomalyResponse:
-    """Identify multivariate and statistical anomalies with contributing reasons."""
+    """Identify multivariate and statistical anomalies with contributing reasons (IQR, Z-score, Isolation Forest)."""
     features = req.feature_cols or list(df.select_dtypes(include=[np.number]).columns)
     num_df = df[features].select_dtypes(include=[np.number]).copy()
     
@@ -28,6 +28,16 @@ def detect_dataset_anomalies(df: pd.DataFrame, req: AnomalyRequest) -> AnomalyRe
         max_z = np.max(z_scores, axis=1)
         is_anomaly = max_z > 3.0
         scores = max_z / 3.0
+    elif req.method == "iqr":
+        q25 = num_df.quantile(0.25)
+        q75 = num_df.quantile(0.75)
+        iqr = q75 - q25
+        lower_bound = q25 - (1.5 * iqr)
+        upper_bound = q75 + (1.5 * iqr)
+        outlier_mask = (num_df < lower_bound) | (num_df > upper_bound)
+        is_anomaly = outlier_mask.any(axis=1).values
+        outlier_counts = outlier_mask.sum(axis=1).values
+        scores = outlier_counts / max(1, len(num_df.columns))
     else: # isolation_forest
         clf = IsolationForest(contamination=contamination, random_state=42)
         preds = clf.fit_predict(X_scaled)
@@ -71,7 +81,7 @@ def detect_dataset_anomalies(df: pd.DataFrame, req: AnomalyRequest) -> AnomalyRe
                 deviations[str(col_name)] = round(float(z), 2)
                 
         top_contrib = max(deviations.items(), key=lambda x: x[1])[0] if deviations else str(num_df.columns[0])
-        reasons_list.append(f"Row #{idx}: Extreme deviation in '{top_contrib}' (Z = {deviations.get(top_contrib, 2.5)} std deviations from mean).")
+        reasons_list.append(f"Row #{idx}: Extreme statistical deviation in '{top_contrib}' (Score = {round(float(scores[idx]), 2)}). Note: statistical outlier, not necessarily data corruption.")
         
         anomalous_records.append({
             "row_index": int(idx),
@@ -83,7 +93,7 @@ def detect_dataset_anomalies(df: pd.DataFrame, req: AnomalyRequest) -> AnomalyRe
         
     ai_summary = (
         f"AI Anomaly Engine detected {anomaly_count} anomalous records ({anomaly_pct}% of dataset) "
-        f"using {req.method.replace('_', ' ').title()}. Extreme deviations primarily manifest in {', '.join([str(c) for c in list(num_df.columns)[:3]])}."
+        f"using {req.method.replace('_', ' ').upper()} method. Primary outliers manifest in {', '.join([str(c) for c in list(num_df.columns)[:3]])}."
     )
     
     return AnomalyResponse(

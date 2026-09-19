@@ -369,11 +369,216 @@ def generate_traffic_forecasting_dataset(n_days: int = 180) -> pd.DataFrame:
         
     return pd.DataFrame(data)
 
+def generate_student_results_dataset(n_samples: int = 150) -> pd.DataFrame:
+    """
+    Generate realistic Student Academic Performance Dataset.
+    Columns: Student_ID, Name, Maths, Science, English, Computer, Attendance
+    """
+    np.random.seed(42)
+    first_names = [
+        "Aarav", "Aditi", "Rohan", "Ananya", "Vihaan", "Diya", "Kabir", "Meera",
+        "Arjun", "Ishita", "Dev", "Sneha", "Karan", "Pooja", "Vikram", "Riya",
+        "Aditya", "Tanvi", "Siddharth", "Nisha", "Rahul", "Priya", "Amit", "Kavya",
+        "Aryan", "Neha", "Manish", "Shreya", "Nikhil", "Divya", "Gaurav", "Anjali"
+    ]
+    last_names = [
+        "Sharma", "Verma", "Gupta", "Patel", "Singh", "Kumar", "Iyer", "Reddy",
+        "Nair", "Deshmukh", "Chopra", "Mehta", "Joshi", "Kapoor", "Bhat", "Shah"
+    ]
+
+    data = []
+    for i in range(1, n_samples + 1):
+        name = f"{np.random.choice(first_names)} {np.random.choice(last_names)}"
+        
+        # Correlated academic skill with subject variance
+        ability = np.random.normal(68, 14)
+        
+        maths = int(np.clip(np.random.normal(ability + 2, 10), 22, 100))
+        science = int(np.clip(np.random.normal(ability - 1, 9), 25, 100))
+        english = int(np.clip(np.random.normal(ability + 4, 8), 30, 100))
+        computer = int(np.clip(np.random.normal(ability + 6, 11), 28, 100))
+        
+        # Attendance correlated with performance
+        att_base = 65 + (ability * 0.35)
+        attendance = round(float(np.clip(np.random.normal(att_base, 6), 45.0, 99.5)), 1)
+
+        data.append({
+            "Student_ID": f"STU-{1000 + i}",
+            "Name": name,
+            "Maths": maths,
+            "Science": science,
+            "English": english,
+            "Computer": computer,
+            "Attendance": attendance
+        })
+
+    return pd.DataFrame(data)
+
+def generate_ecommerce_sales_standard(n_samples: int = 250) -> pd.DataFrame:
+    """
+    Generate standard E-Commerce Sales Dataset.
+    Columns: Product, Category, Price, Quantity, Revenue, Profit, Discount, Rating
+    """
+    np.random.seed(42)
+    catalog = [
+        ("AI Workstation Pro", "Hardware", 1450.0, 0.28),
+        ("Cloud Server Node", "Hardware", 2200.0, 0.32),
+        ("Analytics Suite License", "Software", 850.0, 0.65),
+        ("Data Pipeline ETL Connector", "Software", 450.0, 0.70),
+        ("Neural Coprocessor Card", "Hardware", 620.0, 0.35),
+        ("Managed Cloud Consulting", "Services", 1200.0, 0.45),
+        ("Security Audit Package", "Services", 950.0, 0.50),
+        ("Enterprise Storage Array", "Hardware", 1800.0, 0.30),
+        ("BI Dashboard Pro", "Software", 350.0, 0.75),
+        ("Edge Gateway Device", "Hardware", 520.0, 0.38)
+    ]
+
+    data = []
+    for _ in range(n_samples):
+        prod, cat, price, margin = catalog[np.random.choice(len(catalog))]
+        qty = int(np.random.choice([1, 2, 3, 4, 5, 8, 10], p=[0.35, 0.25, 0.18, 0.10, 0.06, 0.04, 0.02]))
+        disc = float(np.random.choice([0.0, 0.05, 0.10, 0.15, 0.20], p=[0.40, 0.25, 0.20, 0.10, 0.05]))
+        
+        gross = round(price * qty, 2)
+        revenue = round(gross * (1.0 - disc), 2)
+        profit = round(revenue * margin, 2)
+        rating = round(float(np.clip(np.random.normal(4.3, 0.6), 1.0, 5.0)), 1)
+
+        data.append({
+            "Product": prod,
+            "Category": cat,
+            "Price": price,
+            "Quantity": qty,
+            "Revenue": revenue,
+            "Profit": profit,
+            "Discount": disc,
+            "Rating": rating
+        })
+
+    return pd.DataFrame(data)
+
+def generate_employee_dataset(n_samples: int = 180) -> pd.DataFrame:
+    """
+    Generate Employee / HR Analytics Dataset.
+    Columns: Employee_ID, Department, Age, Salary, Experience, Performance
+    """
+    np.random.seed(42)
+    departments = ["Engineering", "Product", "Sales", "Marketing", "Human Resources", "Finance"]
+    dept_weights = [0.30, 0.18, 0.22, 0.12, 0.08, 0.10]
+    
+    data = []
+    for i in range(1, n_samples + 1):
+        dept = np.random.choice(departments, p=dept_weights)
+        exp = int(np.clip(np.random.exponential(4.5), 1, 25))
+        age = int(22 + exp + np.random.randint(0, 8))
+        
+        base_sal = {
+            "Engineering": 85000,
+            "Product": 92000,
+            "Sales": 65000,
+            "Marketing": 62000,
+            "Human Resources": 58000,
+            "Finance": 75000
+        }[dept]
+        
+        salary = int(base_sal + (exp * 6800) + np.random.normal(0, 8500))
+        perf = int(np.clip(np.random.choice([1, 2, 3, 4, 5], p=[0.05, 0.15, 0.45, 0.25, 0.10]), 1, 5))
+
+        data.append({
+            "Employee_ID": f"EMP-{1000 + i}",
+            "Department": dept,
+            "Age": age,
+            "Salary": salary,
+            "Experience": exp,
+            "Performance": perf
+        })
+
+    return pd.DataFrame(data)
+
+def generate_banking_dataset(n_samples: int = 200) -> pd.DataFrame:
+    """
+    Generate Banking & Customer Credit Risk Dataset.
+    Columns: Customer_ID, Age, Income, Credit_Score, Balance, Loan, Default
+    """
+    np.random.seed(42)
+    data = []
+    for i in range(1, n_samples + 1):
+        age = int(np.random.normal(41, 11))
+        age = max(21, min(72, age))
+        
+        income = int(np.clip(np.random.normal(68000, 24000), 22000, 180000))
+        
+        credit_score = int(np.clip(np.random.normal(690 + (income / 5000), 65), 350, 850))
+        balance = int(np.clip(np.random.normal(income * 0.45, 18000), 500, 250000))
+        loan = int(np.clip(np.random.normal(income * 0.75, 25000), 2000, 350000))
+        
+        # Default probability increases if credit score < 620 and high loan-to-income
+        def_prob = 0.03
+        if credit_score < 600:
+            def_prob += 0.35
+        if loan > income * 1.2:
+            def_prob += 0.20
+        is_default = int(np.random.rand() < min(0.85, def_prob))
+
+        data.append({
+            "Customer_ID": f"CUST-{2000 + i}",
+            "Age": age,
+            "Income": income,
+            "Credit_Score": credit_score,
+            "Balance": balance,
+            "Loan": loan,
+            "Default": is_default
+        })
+
+    return pd.DataFrame(data)
+
+def generate_generic_dataset(n_samples: int = 200) -> pd.DataFrame:
+    """
+    Generate Unrelated Generic Industrial Sensor Dataset.
+    Columns: Sensor_ID, Temperature, Pressure, Vibration, Efficiency, Status_Code, Batch
+    """
+    np.random.seed(42)
+    batches = ["Batch-Alpha", "Batch-Beta", "Batch-Gamma", "Batch-Delta"]
+    status_codes = ["Normal", "Warning", "Critical", "Maintenance"]
+    
+    data = []
+    for i in range(1, n_samples + 1):
+        temp = round(float(np.random.normal(72.5, 8.4)), 2)
+        pressure = round(float(np.random.normal(101.3, 14.2)), 2)
+        vibration = round(float(np.random.exponential(1.8)), 3)
+        efficiency = round(float(np.clip(98.5 - (temp * 0.12) - (vibration * 2.1), 40.0, 99.9)), 2)
+        status = "Critical" if efficiency < 65.0 or temp > 90.0 else ("Warning" if efficiency < 80.0 else "Normal")
+        batch = np.random.choice(batches)
+
+        data.append({
+            "Sensor_ID": f"SNS-{3000 + i}",
+            "Temperature": temp,
+            "Pressure": pressure,
+            "Vibration": vibration,
+            "Efficiency": efficiency,
+            "Status_Code": status,
+            "Batch": batch
+        })
+
+    return pd.DataFrame(data)
+
 SAMPLE_GENERATORS = {
+    # 5 Main Required Domains (Step 22)
+    "student": ("Student Academic Performance (Maths, Science, Attendance)", generate_student_results_dataset),
+    "student_results": ("Student Academic Performance Results", generate_student_results_dataset),
+    "ecommerce": ("E-Commerce Sales & Profit Engine (Revenue, Profit, Rating)", generate_ecommerce_sales_standard),
+    "ecommerce_sales": ("E-Commerce Commercial Sales", generate_ecommerce_sales_standard),
+    "hr": ("HR Workforce & Salary Analytics (Department, Salary, Attrition)", generate_employee_dataset),
+    "employee_data": ("HR Employee Workforce Data", generate_employee_dataset),
+    "banking": ("Banking & Credit Risk Portfolio (Credit Score, Balance, Default)", generate_banking_dataset),
+    "banking_data": ("Banking Customer Portfolio", generate_banking_dataset),
+    "generic": ("Universal Industrial Sensor & Telemetry Data (Temp, Pressure, Efficiency)", generate_generic_dataset),
+    "generic_data": ("Universal Multi-Variable Dataset", generate_generic_dataset),
+    # Additional Preloaded Datasets
     "sales_data": ("Enterprise Sales, Cost & Profit Dataset (550+ Records)", generate_sales_data_dataset),
-    "ecommerce": ("E-Commerce Sales & Profit Analytics", generate_ecommerce_dataset),
     "churn": ("Customer Churn & Retention Dataset", generate_churn_dataset),
     "housing": ("Real Estate Valuation & Housing Prices", generate_housing_dataset),
     "heart": ("Clinical Heart Disease Risk Assessment", generate_heart_dataset),
     "traffic": ("Web Traffic & Daily Revenue Forecast", generate_traffic_forecasting_dataset)
 }
+

@@ -85,14 +85,46 @@ class DatasetSummary(BaseModel):
     columns: int
     column_names: List[str]
     column_types: Dict[str, str]
+    domain: Optional[str] = "generic"
+    domain_confidence: Optional[float] = 1.0
+    domain_reason: Optional[str] = "Standard structured tabular dataset"
+    domain_override: Optional[str] = None
+    column_mapping: Optional[Dict[str, Any]] = None
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
 
+class DomainDetectionResult(BaseModel):
+    domain: str  # student, ecommerce, hr, banking, finance, marketing, healthcare, generic
+    confidence: float  # 0.0 to 1.0
+    reason: str
+    detected_fields: Dict[str, Any]
+    possible_domains: Optional[List[Dict[str, Any]]] = None
+
+class DomainOverrideRequest(BaseModel):
+    domain: str  # student, ecommerce, hr, banking, finance, marketing, healthcare, generic
+
+class ColumnMappingUpdateRequest(BaseModel):
+    column_mapping: Dict[str, Any]
+
+class DomainAnalyticsResponse(BaseModel):
+    dataset_id: int
+    domain: str
+    domain_display_name: str
+    confidence: float
+    reason: str
+    is_overridden: bool = False
+    detected_fields: Dict[str, Any]
+    kpis: List[Dict[str, Any]]
+    charts: List[Dict[str, Any]]
+    domain_insights: List[Dict[str, Any]]
+    metrics: Dict[str, Any]
+    recommendations: List[str]
+
 class SampleDatasetRequest(BaseModel):
-    sample_key: str  # sales_data, ecommerce, churn, housing, heart, traffic
+    sample_key: str  # student, ecommerce, hr, banking, generic, sales_data, churn, housing, heart, traffic
 
 
 # ----------------- PROFILING & HEALTH SCHEMAS -----------------
@@ -236,15 +268,25 @@ class KPICard(BaseModel):
     icon: str
 
 class DashboardOverviewResponse(BaseModel):
-    kpis: List[KPICard]
-    sales_trend: List[Dict[str, Any]]
-    revenue_analysis: List[Dict[str, Any]]
-    profit_trend: List[Dict[str, Any]]
-    target_vs_actual: List[Dict[str, Any]]
-    customer_distribution: List[Dict[str, Any]]
-    product_performance: List[Dict[str, Any]]
-    regional_performance: List[Dict[str, Any]]
-    monthly_growth: List[Dict[str, Any]]
+    domain: str = "generic"
+    domain_display_name: str = "Generic Analytics"
+    domain_confidence: float = 1.0
+    domain_reason: str = "Standard structured tabular dataset"
+    domain_override: Optional[str] = None
+    detected_fields: Dict[str, Any] = Field(default_factory=dict)
+    kpis: List[KPICard] = Field(default_factory=list)
+    dynamic_charts: List[Dict[str, Any]] = Field(default_factory=list)
+    summary_metrics: Dict[str, Any] = Field(default_factory=dict)
+    ai_summary: Optional[str] = None
+    # Backward-compatible fields for legacy SaaS sales dashboard
+    sales_trend: List[Dict[str, Any]] = Field(default_factory=list)
+    revenue_analysis: List[Dict[str, Any]] = Field(default_factory=list)
+    profit_trend: List[Dict[str, Any]] = Field(default_factory=list)
+    target_vs_actual: List[Dict[str, Any]] = Field(default_factory=list)
+    customer_distribution: List[Dict[str, Any]] = Field(default_factory=list)
+    product_performance: List[Dict[str, Any]] = Field(default_factory=list)
+    regional_performance: List[Dict[str, Any]] = Field(default_factory=list)
+    monthly_growth: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 # ----------------- STATISTICAL & CORRELATION SCHEMAS -----------------

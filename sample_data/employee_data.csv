@@ -1,0 +1,21 @@
+Employee_ID,Department,Age,Salary,Experience,Performance
+EMP-1001,Engineering,28,95000,4,4
+EMP-1002,Product,34,115000,8,5
+EMP-1003,Sales,26,68000,2,3
+EMP-1004,Marketing,31,74000,5,4
+EMP-1005,Engineering,42,145000,15,5
+EMP-1006,Human Resources,29,62000,4,3
+EMP-1007,Finance,36,88000,9,4
+EMP-1008,Engineering,25,82000,2,4
+EMP-1009,Sales,38,92000,11,4
+EMP-1010,Product,29,98000,5,4
+EMP-1011,Finance,45,120000,18,5
+EMP-1012,Engineering,33,110000,7,4
+EMP-1013,Marketing,27,65000,3,3
+EMP-1014,Human Resources,39,78000,12,4
+EMP-1015,Sales,32,84000,7,3
+EMP-1016,Engineering,48,165000,20,5
+EMP-1017,Product,27,89000,3,4
+EMP-1018,Finance,30,76000,5,3
+EMP-1019,Engineering,35,118000,9,4
+EMP-1020,Marketing,34,80000,8,4

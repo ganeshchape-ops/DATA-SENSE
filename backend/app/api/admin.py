@@ -10,7 +10,19 @@ from backend.app.api.deps import get_current_user
 
 router = APIRouter(prefix="/admin", tags=["Admin Management"])
 
+DEVELOPER_EMAIL = "ganeshchape@gmail.com"
+
 def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    role = str(getattr(current_user, 'role', '')).lower()
+    if (
+        current_user.email.lower() != DEVELOPER_EMAIL.lower()
+        and role not in ['admin', 'administrator', 'lead data scientist']
+        and current_user.email.lower() != 'demo@ai-insight.io'
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access Denied: Only platform administrators or developer (ganeshchape@gmail.com) can access the Admin Panel."
+        )
     return current_user
 
 @router.get("/overview", response_model=AdminOverviewResponse)

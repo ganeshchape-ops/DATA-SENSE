@@ -8,36 +8,65 @@ from backend.app.core.config import settings
 from backend.app.schemas.api_schemas import AIInsightsResponse, AIInsightSection
 from backend.app.services.profiling_service import generate_dataset_profile
 from backend.app.services.stats_service import compute_correlation_matrix
+from backend.app.services.dataset_detector import detect_dataset_domain
+from backend.app.services.analyzers import get_analyzer
 
-def generate_heuristic_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_name: str) -> AIInsightsResponse:
-    """Generate high-depth, data-driven analytical insights using statistical heuristics."""
+def generate_heuristic_ai_insights(
+    df: pd.DataFrame,
+    dataset_id: int,
+    dataset_name: str,
+    domain_override: Optional[str] = None,
+    column_mapping: Optional[Dict[str, Any]] = None
+) -> AIInsightsResponse:
+    """Generate high-depth, domain-aware analytical insights using statistical heuristics."""
     profile = generate_dataset_profile(df, dataset_id, dataset_name)
     corr_result = compute_correlation_matrix(df)
     
+    # Resolve domain
+    if domain_override:
+        effective_domain = domain_override
+    else:
+        detected = detect_dataset_domain(df)
+        effective_domain = detected["domain"]
+        if not column_mapping:
+            column_mapping = detected["detected_fields"]
+
+    analyzer = get_analyzer(effective_domain)
+    domain_insights = analyzer.get_ai_insights(df, column_mapping)
+
     total_rows = len(df)
     total_cols = len(df.columns)
     
-    # 1. Executive Summary
-    summary_sentences = [
-        f"AI DataSense analyzed '{dataset_name}' containing {total_rows:,} records and {total_cols} attributes.",
-        f"The dataset achieves an overall Data Health Score of {profile.data_quality_score}/100.",
-    ]
-    if profile.total_missing_cells > 0:
-        summary_sentences.append(f"Identified {profile.total_missing_cells:,} missing cells ({profile.missing_cells_pct}% missingness) across {len(profile.missing_per_column)} columns.")
-    else:
-        summary_sentences.append("The dataset is 100% complete with zero missing values detected.")
+    # 1. Executive Summary (Domain tailored)
+    base_summary = domain_insights.get("executive_summary")
+    if not base_summary:
+        summary_sentences = [
+            f"AI DataSense analyzed '{dataset_name}' containing {total_rows:,} records and {total_cols} attributes.",
+            f"The dataset achieves an overall Data Health Score of {profile.data_quality_score}/100.",
+        ]
+        if profile.total_missing_cells > 0:
+            summary_sentences.append(f"Identified {profile.total_missing_cells:,} missing cells ({profile.missing_cells_pct}% missingness).")
+        else:
+            summary_sentences.append("The dataset is complete with zero missing values detected.")
+        base_summary = " ".join(summary_sentences)
         
-    if profile.duplicate_rows_count > 0:
-        summary_sentences.append(f"Found {profile.duplicate_rows_count:,} duplicate rows ({profile.duplicate_rows_pct}%) that may distort statistical distributions.")
-    else:
-        summary_sentences.append("All rows are distinct with no duplicate records.")
-        
-    executive_summary = " ".join(summary_sentences)
+    executive_summary = base_summary
     
     # 2. Key Findings
     key_findings: List[AIInsightSection] = []
     
-    for num_col in profile.numeric_stats[:4]:
+    # First inject domain-specific findings
+    for df_finding in domain_insights.get("key_findings", []):
+        key_findings.append(AIInsightSection(
+            title=df_finding.get("title", "Key Finding"),
+            summary=df_finding.get("summary", ""),
+            bullet_points=df_finding.get("bullet_points", []),
+            badge=df_finding.get("badge", analyzer.domain_display_name[:12]),
+            sentiment=df_finding.get("sentiment", "positive")
+        ))
+
+    # Add numeric distribution findings
+    for num_col in profile.numeric_stats[:3]:
         points = []
         points.append(f"Average value is {num_col.mean:,.2f} with standard deviation {num_col.std:,.2f}.")
         points.append(f"50% of the observations fall between {num_col.q25:,.2f} and {num_col.q75:,.2f} (IQR = {num_col.iqr:,.2f}).")
@@ -48,20 +77,18 @@ def generate_heuristic_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_na
         badge = "Normal" if (num_col.skewness and abs(num_col.skewness) < 0.5) else "Skewed"
         key_findings.append(AIInsightSection(
             title=f"Distribution Analysis: {num_col.name}",
-            summary=f"Key descriptive metrics for {num_col.name} ranging from {num_col.min:,.2f} to {num_col.max:,.2f}.",
+            summary=f"Descriptive metrics for {num_col.name} ranging from {num_col.min:,.2f} to {num_col.max:,.2f}.",
             bullet_points=points,
             badge=badge,
             sentiment="positive" if badge == "Normal" else "neutral"
         ))
         
-    for cat_col in profile.categorical_stats[:3]:
+    for cat_col in profile.categorical_stats[:2]:
         points = []
         points.append(f"Contains {cat_col.unique_count} distinct categories.")
         if cat_col.top_value:
             top_pct = round((cat_col.top_frequency / max(1, total_rows)) * 100, 1)
             points.append(f"Dominant category is '{cat_col.top_value}' representing {top_pct}% of total occurrences.")
-            if top_pct > 60:
-                points.append(f"High class concentration observed in '{cat_col.top_value}'. Consider evaluating potential class imbalance in downstream modeling.")
         key_findings.append(AIInsightSection(
             title=f"Categorical Breakdown: {cat_col.name}",
             summary=f"Cardinality and frequency concentration in {cat_col.name}.",
@@ -91,9 +118,8 @@ def generate_heuristic_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_na
                         title=f"Temporal Trend in {first_num} over {dcol}",
                         summary=f"Detected {abs(pct_change)}% {trend_dir} in {first_num} comparing historical to recent timeline.",
                         bullet_points=[
-                            f"Earliest recorded date: {df_sorted[dcol].min().strftime('%Y-%m-%d')}, Latest: {df_sorted[dcol].max().strftime('%Y-%m-%d')}.",
-                            f"Early period mean: {first_half:,.2f} vs Late period mean: {second_half:,.2f}.",
-                            f"Indicates clear {trend_dir} trajectory suitable for time-series forecasting."
+                            f"Earliest date: {df_sorted[dcol].min().strftime('%Y-%m-%d')}, Latest: {df_sorted[dcol].max().strftime('%Y-%m-%d')}.",
+                            f"Early period mean: {first_half:,.2f} vs Late period mean: {second_half:,.2f}."
                         ],
                         badge="Temporal",
                         sentiment="positive" if pct_change > 0 else "warning"
@@ -104,10 +130,10 @@ def generate_heuristic_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_na
     if not identified_trends:
         identified_trends.append(AIInsightSection(
             title="Cross-Sectional Patterns",
-            summary="Structural trends across dataset segments.",
+            summary=f"Structural analysis for {analyzer.domain_display_name}.",
             bullet_points=[
-                f"Dataset exhibits {total_rows} sample records across {total_cols} dimensions.",
-                "Homogeneous records suggest robust statistical power for machine learning models."
+                f"Cohort exhibits {total_rows} sample records across {total_cols} dimensions.",
+                "Homogeneous records suggest robust statistical power for analysis."
             ],
             badge="Cross-Sectional",
             sentiment="neutral"
@@ -122,7 +148,7 @@ def generate_heuristic_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_na
             summary=f"Missing values detected in {len(high_missing)} features.",
             bullet_points=[
                 f"Impacted columns: {', '.join(high_missing[:4])}.",
-                "Recommended Action: Use Median/Mode imputation or KNN imputer in the Data Cleaning module."
+                "Recommended Action: Use median or mode imputation in Data Cleaning."
             ],
             badge="Missing Data",
             sentiment="warning"
@@ -133,8 +159,8 @@ def generate_heuristic_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_na
             title="Duplicate Entry Warning",
             summary=f"Found {profile.duplicate_rows_count} exact duplicate rows.",
             bullet_points=[
-                "Duplicate records can falsely inflate model accuracy scores and bias statistical variance.",
-                "Recommended Action: Apply 1-click duplicate removal before training models."
+                "Duplicate records can distort statistical distributions.",
+                "Recommended Action: Remove duplicate rows before modeling."
             ],
             badge="Duplicates",
             sentiment="alert"
@@ -167,7 +193,7 @@ def generate_heuristic_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_na
             title=f"Strongest Positive Driver: {top_pos['var1']} & {top_pos['var2']}",
             summary=f"Strong positive linear correlation (r = +{top_pos['correlation']:.2f}).",
             bullet_points=[
-                f"As '{top_pos['var1']}' increases, '{top_pos['var2']}' demonstrates a synchronized upward increase.",
+                f"As '{top_pos['var1']}' increases, '{top_pos['var2']}' demonstrates a synchronized increase.",
                 "This relationship represents a key explanatory predictive feature."
             ],
             badge="Positive Driver",
@@ -180,63 +206,58 @@ def generate_heuristic_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_na
             title=f"Inverse Relationship: {top_neg['var1']} & {top_neg['var2']}",
             summary=f"Significant inverse correlation (r = {top_neg['correlation']:.2f}).",
             bullet_points=[
-                f"Higher values of '{top_neg['var1']}' coincide with reduced values in '{top_neg['var2']}'.",
-                "Useful for trade-off analysis and risk optimization models."
+                f"Higher values of '{top_neg['var1']}' coincide with reduced values in '{top_neg['var2']}'."
             ],
             badge="Inverse Driver",
             sentiment="neutral"
         ))
 
-    # 6. Strategic Business Recommendations
+    # 6. Strategic Recommendations
     strategic_recommendations: List[AIInsightSection] = []
-    strategic_recommendations.append(AIInsightSection(
-        title="Predictive Modeling Strategy",
-        summary="Optimized machine learning pipeline recommendation based on dataset topology.",
-        bullet_points=[
-            "Deploy Random Forest or Gradient Boosting algorithms to capture nonlinear interactions without strict distribution assumptions.",
-            "Use 80/20 train-test split with stratified cross-validation for maximum generalizability."
-        ],
-        badge="Strategy",
-        sentiment="positive"
-    ))
-    
-    strategic_recommendations.append(AIInsightSection(
-        title="Operational Action Plan",
-        summary="Actionable business execution steps.",
-        bullet_points=[
-            "Focus KPI optimization on primary driver variables identified in the correlation analysis.",
-            "Schedule automated weekly anomaly scans to flag sudden metric shifts before they impact operations.",
-            "Export the generated executive PDF report for management review."
-        ],
-        badge="Operations",
-        sentiment="positive"
-    ))
+    recs_list = domain_insights.get("recommendations", [])
+    if recs_list:
+        strategic_recommendations.append(AIInsightSection(
+            title=f"{analyzer.domain_display_name} Action Plan",
+            summary="Targeted strategic initiatives derived from domain analytics.",
+            bullet_points=recs_list[:4],
+            badge="Strategy",
+            sentiment="positive"
+        ))
+    else:
+        strategic_recommendations.append(AIInsightSection(
+            title="Operational Action Plan",
+            summary="Actionable execution steps.",
+            bullet_points=[
+                "Focus KPI optimization on primary driver variables identified in correlation analysis.",
+                "Schedule periodic anomaly scans to flag sudden metric shifts.",
+                "Export executive PDF report for management review."
+            ],
+            badge="Operations",
+            sentiment="positive"
+        ))
 
     # 7. SWOT Analysis
     swot = {
-        "strengths": [
-            f"High statistical sample size of {total_rows:,} records across {total_cols} dimensional attributes.",
-            f"Robust data quality score of {profile.data_quality_score}/100."
-        ],
-        "weaknesses": [
-            f"Missing data in {sum(1 for cnt in profile.missing_per_column.values() if cnt > 0)} columns requiring preprocessing.",
-            "Outlier presence in extreme tails requiring IQR capping."
-        ],
-        "opportunities": [
-            "Train predictive classification and regression models for automated decision making.",
-            "Utilize time-series forecasting for capacity planning and budget forecasting."
-        ],
-        "threats": [
-            "Overfitting if non-informative ID columns are included during model training.",
-            "Concept drift over long timeframes if model retraining is neglected."
-        ]
+        "strengths": domain_insights.get("strengths", [
+            f"Sample size of {total_rows:,} records across {total_cols} attributes.",
+            f"Data Health Score of {profile.data_quality_score}/100."
+        ]),
+        "weaknesses": domain_insights.get("weaknesses", [
+            f"Missing data in {sum(1 for cnt in profile.missing_per_column.values() if cnt > 0)} columns requiring preprocessing."
+        ]),
+        "opportunities": domain_insights.get("opportunities", [
+            "Deploy predictive machine learning models for automated decision making."
+        ]),
+        "threats": domain_insights.get("threats", [
+            "Overfitting if non-informative identifiers are included in training."
+        ])
     }
 
     return AIInsightsResponse(
         dataset_id=dataset_id,
         dataset_name=dataset_name,
         executive_summary=executive_summary,
-        data_health_evaluation=f"Data Quality: {profile.data_quality_score}/100. Memory: {profile.memory_usage_kb} KB. Features: {total_cols}.",
+        data_health_evaluation=f"Data Quality: {profile.data_quality_score}/100. Domain: {analyzer.domain_display_name}. Features: {total_cols}.",
         key_findings=key_findings,
         identified_trends=identified_trends,
         anomalies_and_risks=anomalies_and_risks,
@@ -246,12 +267,6 @@ def generate_heuristic_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_na
         generated_by="heuristic_engine"
     )
 
-def generate_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_name: str, custom_api_key: Optional[str] = None) -> AIInsightsResponse:
+def generate_ai_insights(df: pd.DataFrame, dataset_id: int, dataset_name: str, custom_api_key: Optional[str] = None, domain_override: Optional[str] = None) -> AIInsightsResponse:
     """Generate AI insights using pluggable LLM if key is available, else statistical heuristic engine."""
-    api_key = custom_api_key or settings.AI_API_KEY
-    if api_key and len(api_key) > 10:
-        try:
-            pass
-        except Exception:
-            pass
-    return generate_heuristic_ai_insights(df, dataset_id, dataset_name)
+    return generate_heuristic_ai_insights(df, dataset_id, dataset_name, domain_override=domain_override)

@@ -1,0 +1,16 @@
+Product,Category,Price,Quantity,Revenue,Profit,Discount,Rating
+AI Workstation Pro,Hardware,1450.0,4,5510.0,1542.8,0.05,4.8
+Cloud Server Node,Hardware,2200.0,2,4400.0,1408.0,0.0,4.6
+Analytics Suite License,Software,850.0,5,3825.0,2486.25,0.10,4.7
+Data Pipeline ETL Connector,Software,450.0,8,3240.0,2268.0,0.10,4.5
+Neural Coprocessor Card,Hardware,620.0,3,1860.0,651.0,0.0,4.4
+Managed Cloud Consulting,Services,1200.0,2,2280.0,1026.0,0.05,4.9
+Security Audit Package,Services,950.0,1,855.0,427.5,0.10,4.3
+Enterprise Storage Array,Hardware,1800.0,2,3240.0,972.0,0.10,4.6
+BI Dashboard Pro,Software,350.0,10,3150.0,2362.5,0.10,4.8
+Edge Gateway Device,Hardware,520.0,6,2808.0,1067.04,0.10,4.2
+AI Workstation Pro,Hardware,1450.0,2,2900.0,812.0,0.0,4.7
+Cloud Server Node,Hardware,2200.0,1,1980.0,633.6,0.10,4.5
+Analytics Suite License,Software,850.0,3,2422.5,1574.62,0.05,4.9
+Data Pipeline ETL Connector,Software,450.0,4,1800.0,1260.0,0.0,4.4
+Managed Cloud Consulting,Services,1200.0,3,3240.0,1458.0,0.10,4.8

@@ -40,20 +40,16 @@ const DashboardLayout: React.FC<{
   onOpenSearch: () => void;
   onOpenNotifications: () => void;
   unreadCount: number;
-  isDarkMode: boolean;
-  onToggleDarkMode: () => void;
 }> = ({
   onOpenSearch,
   onOpenNotifications,
   unreadCount,
-  isDarkMode,
-  onToggleDarkMode
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen message="Authenticating secure AI session..." />;
+    return <LoadingSpinner fullScreen message="Authenticating AI DataSense session..." />;
   }
 
   if (!isAuthenticated) {
@@ -61,17 +57,15 @@ const DashboardLayout: React.FC<{
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-900 relative selection:bg-indigo-600 selection:text-white">
       <Navbar
         onOpenSearch={onOpenSearch}
         onOpenNotifications={onOpenNotifications}
         unreadNotificationsCount={unreadCount}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={onToggleDarkMode}
         onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
       />
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex relative z-10">
         {/* Sidebar Navigation */}
         <Sidebar
           mobileOpen={mobileSidebarOpen}
@@ -91,37 +85,34 @@ const DashboardLayout: React.FC<{
 };
 
 export const App: React.FC = () => {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('ai_insight_theme') === 'dark';
-  });
 
   const [notifications, setNotifications] = useState([
     {
       id: '1',
-      title: 'Enterprise Model Ready',
-      message: 'Random Forest AutoML training finished with 92.4% test accuracy.',
-      time: '5m ago',
+      title: 'AutoML Model Benchmarked',
+      message: 'Random Forest trained with 94.2% test accuracy on your active dataset.',
+      time: '3m ago',
       type: 'prediction' as const,
       unread: true,
       link: '/ml',
     },
     {
       id: '2',
-      title: 'Outlier Alerts Detected',
-      message: '18 transaction spikes identified via Isolation Forest engine.',
-      time: '25m ago',
-      type: 'anomaly' as const,
+      title: 'Dataset Profile Synthesized',
+      message: 'Multi-signal analysis detected academic performance parameters.',
+      time: '12m ago',
+      type: 'analysis' as const,
       unread: true,
-      link: '/anomaly',
+      link: '/dashboard',
     },
     {
       id: '3',
       title: 'Executive PDF Generated',
-      message: 'Your multi-page analytics report has been compiled successfully.',
-      time: '1h ago',
+      message: 'Your publication-grade analytics report is ready for download.',
+      time: '45m ago',
       type: 'report' as const,
       unread: false,
       link: '/reports',
@@ -129,16 +120,9 @@ export const App: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('ai_insight_theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('ai_insight_theme', 'light');
-    }
-  }, [isDarkMode]);
+    document.documentElement.classList.remove('dark');
+  }, []);
 
-  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
   const unreadCount = notifications.filter(n => n.unread).length;
 
   if (showSplash) {
@@ -176,8 +160,6 @@ export const App: React.FC = () => {
                 onOpenSearch={() => setSearchOpen(true)}
                 onOpenNotifications={() => setNotifOpen(true)}
                 unreadCount={unreadCount}
-                isDarkMode={isDarkMode}
-                onToggleDarkMode={toggleDarkMode}
               />
             }
           >

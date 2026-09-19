@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   UploadCloud, FileSpreadsheet, Sparkles, CheckCircle2, AlertCircle,
   Database, ShoppingCart, Users, Home, HeartPulse, LineChart,
-  BarChart3, Zap, ArrowRight, ShieldCheck, FileCode
+  BarChart3, Zap, ArrowRight, ShieldCheck, FileCode, GraduationCap,
+  Landmark, Briefcase, ArrowUp
 } from 'lucide-react';
 import { datasetApi, analyticsApi } from '../services/api';
 import { useDataset } from '../context/DatasetContext';
@@ -107,90 +108,98 @@ export const UploadPage: React.FC = () => {
     }
   };
 
-  const samples = [
+  const benchmarkSamples = [
     {
-      key: "sales_data",
-      title: "Enterprise Sales & Profit Engine",
-      desc: "550+ Multi-variable records • Sales, Cost, Profit, Discount, Ratings, Geography",
-      icon: LineChart,
-      badge: "Recommended Demo",
-      color: "from-indigo-600 to-violet-600"
+      key: "student",
+      title: "Student Academic Performance",
+      domainBadge: "Education",
+      desc: "500 Students • Dynamic Subject Detection, Pass/Fail Rates, Grade Bands, Attendance Analysis",
+      icon: GraduationCap,
+      badge: "Benchmark #1",
+      color: "from-purple-600 to-indigo-600"
     },
     {
-      key: "ecommerce",
-      title: "E-Commerce Customer Experience",
-      desc: "500 Orders • Sales, Margins, Discounts, Customer Age, Sub-Categories",
+      key: "ecommerce_sales",
+      title: "E-Commerce Commercial Sales",
+      domainBadge: "E-Commerce",
+      desc: "500 Transactions • Revenue, Margin, Profit, Discounts, Customer Ratings, Returns",
       icon: ShoppingCart,
-      color: "from-blue-600 to-indigo-600"
-    },
-    {
-      key: "churn",
-      title: "Customer Retention & Churn Risk",
-      desc: "450 Subscribers • Monthly Charges, Tenure, Contract Types, Churn Targets",
-      icon: Users,
-      color: "from-purple-600 to-pink-600"
-    },
-    {
-      key: "housing",
-      title: "Real Estate Valuation Regression",
-      desc: "400 Properties • Square Footage, Bedrooms, Bathrooms, Parking, Price",
-      icon: Home,
+      badge: "Benchmark #2",
       color: "from-emerald-600 to-teal-600"
     },
     {
-      key: "heart",
-      title: "Clinical Heart Disease Classifier",
-      desc: "350 Clinical Patients • Resting BP, Cholesterol, Max HR, Angina Risk",
-      icon: HeartPulse,
-      color: "from-rose-600 to-red-600"
+      key: "employee_data",
+      title: "HR Workforce & Salary Analytics",
+      domainBadge: "HR",
+      desc: "400 Employees • Department Headcount, Compensation Tiers, Tenure, Attrition Rate",
+      icon: Briefcase,
+      badge: "Benchmark #3",
+      color: "from-purple-600 to-pink-600"
     },
     {
-      key: "traffic",
-      title: "Daily Web Traffic & Revenue Forecast",
-      desc: "180 Days Chronological • Daily Visitors, Pageviews, Conversion, Revenue",
-      icon: Zap,
+      key: "banking_data",
+      title: "Banking & Credit Risk Portfolio",
+      domainBadge: "Banking",
+      desc: "450 Accounts • Credit Scores, Account Balances, Loan Default Probability, Delinquency",
+      icon: Landmark,
+      badge: "Benchmark #4",
       color: "from-amber-600 to-orange-600"
+    },
+    {
+      key: "generic_data",
+      title: "Universal Tabular Telemetry",
+      domainBadge: "Generic",
+      desc: "350 Sensor Readings • Temperatures, Pressures, Vibrations, System Efficiency (Zero hardcoding)",
+      icon: Zap,
+      badge: "Benchmark #5",
+      color: "from-slate-600 to-slate-800"
+    },
+    {
+      key: "heart",
+      title: "Patient Cohort Demographics",
+      domainBadge: "Healthcare",
+      desc: "350 Demographic Records • Resting BP, Cholesterol, Max HR, Demographic distributions",
+      icon: HeartPulse,
+      badge: "Clinical",
+      color: "from-rose-600 to-red-600"
     },
   ];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in-scale">
-      {/* Header with Demo CTA */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+    <div className="max-w-4xl mx-auto space-y-8 animate-in-scale pb-16">
+      {/* Header */}
+      <div className="glass-card p-6 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1">
-              <UploadCloud className="w-3.5 h-3.5" /> Data Ingestion Pipeline
-            </span>
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Upload Dataset or Launch Demo
+          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5 mb-1">
+            <UploadCloud className="w-3.5 h-3.5" /> Data Ingestion Pipeline
+          </span>
+          <h1 className="text-2xl font-black text-white tracking-tight">
+            Ingest Any Dataset
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Support for CSV, XLSX, XLS, and JSON formats up to 50MB with instant schema validation and profiling.
+          <p className="text-xs text-slate-400 mt-0.5">
+            Automatic schema recognition, multi-domain inference, and dynamic statistical profiling.
           </p>
         </div>
 
-        {/* Demo Mode Button */}
         <button
-          onClick={() => handleLoadSample('sales_data')}
+          onClick={() => handleLoadSample('student')}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 hover:scale-105 transition-all"
+          className="btn-ai-primary px-4 py-2 text-xs font-bold flex items-center gap-1.5 shrink-0"
         >
-          <Sparkles className="w-4 h-4 text-amber-300" />
-          <span>Explore Demo Analytics (550+ Records)</span>
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Launch Academic Demo</span>
         </button>
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 text-xs flex items-center gap-2.5">
-          <AlertCircle className="w-5 h-5 shrink-0" />
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Drag & Drop Upload Zone */}
-      <div className="p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+      {/* Large Centered Drag-and-Drop Card */}
+      <div className="glass-card-glow p-8 sm:p-12 rounded-3xl relative overflow-hidden text-center">
         <form onSubmit={handleUpload} className="space-y-6">
           <div
             onDragEnter={handleDrag}
@@ -198,12 +207,12 @@ export const UploadPage: React.FC = () => {
             onDragOver={handleDrag}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-3xl p-10 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center ${
+            className={`border-2 border-dashed rounded-3xl p-10 sm:p-14 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center relative ${
               dragActive
-                ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30 scale-[1.01]'
+                ? 'border-purple-500 bg-purple-500/10 scale-[1.01]'
                 : file
-                ? 'border-emerald-500/80 bg-emerald-50/30 dark:bg-emerald-950/20'
-                : 'border-slate-200 dark:border-slate-700 hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                ? 'border-emerald-500/60 bg-emerald-500/5'
+                : 'border-white/[0.1] hover:border-purple-500/50 hover:bg-white/[0.02]'
             }`}
           >
             <input
@@ -214,53 +223,65 @@ export const UploadPage: React.FC = () => {
               className="hidden"
             />
 
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${
-              file ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600' : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+            {/* Glowing Icon */}
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 ${
+              file ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-purple-500/15 text-purple-400 border border-purple-500/25 shadow-lg shadow-purple-500/15'
             }`}>
-              {file ? <CheckCircle2 className="w-8 h-8" /> : <UploadCloud className="w-8 h-8" />}
+              {file ? <CheckCircle2 className="w-8 h-8" /> : <ArrowUp className="w-8 h-8 animate-bounce" />}
             </div>
 
             {file ? (
-              <div className="space-y-1">
-                <p className="text-base font-bold text-slate-900 dark:text-white">{file.name}</p>
-                <p className="text-xs text-slate-500">{(file.size / (1024 * 1024)).toFixed(2)} MB • File validated & ready to analyze</p>
+              <div className="space-y-1.5">
+                <p className="text-base font-bold text-white font-sans">{file.name}</p>
+                <p className="text-xs text-emerald-400">
+                  {(file.size / (1024 * 1024)).toFixed(2)} MB • File validated & ready to analyze
+                </p>
               </div>
             ) : (
-              <div className="space-y-1.5">
-                <p className="text-base font-bold text-slate-800 dark:text-slate-100">
-                  Drag & Drop your dataset here, or <span className="text-indigo-600 dark:text-indigo-400 underline">Browse Files</span>
+              <div className="space-y-2">
+                <p className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                  Drop your dataset here
                 </p>
-                <p className="text-xs text-slate-400">
-                  Supported extensions: <strong className="text-slate-600 dark:text-slate-300">.CSV, .XLSX, .XLS, .JSON</strong> (Max 50MB)
+                <p className="text-xs text-slate-400 font-mono">
+                  CSV, XLSX, XLS
+                </p>
+                <p className="text-xs text-slate-500">or</p>
+                <div className="pt-1">
+                  <span className="btn-ai-secondary px-4 py-2 text-xs font-semibold inline-block">
+                    [ Browse Files ]
+                  </span>
+                </div>
+                <p className="text-xs text-purple-300 font-medium pt-3 max-w-sm mx-auto">
+                  AI will automatically understand your dataset structure.
                 </p>
               </div>
             )}
           </div>
 
           {file && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <div className="text-left space-y-1">
+              <label className="text-xs font-semibold text-slate-300">
                 Dataset Title / Name
               </label>
               <input
                 type="text"
                 value={datasetName}
                 onChange={(e) => setDatasetName(e.target.value)}
-                placeholder="E.g. Q1 Global Revenue & Sales"
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                placeholder="E.g. Student Academic Records 2026"
+                className="w-full px-4 py-2.5 bg-[#07090E] border border-white/[0.1] rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
               />
             </div>
           )}
 
           {loading && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
-                <span>Ingesting, profiling & computing health scores...</span>
-                <span>{uploadProgress}%</span>
+            <div className="space-y-2 text-left">
+              <div className="flex justify-between text-xs font-semibold text-slate-400">
+                <span>Understanding dataset & computing domain models...</span>
+                <span className="text-purple-400 font-mono">{uploadProgress}%</span>
               </div>
-              <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
@@ -270,57 +291,56 @@ export const UploadPage: React.FC = () => {
           <button
             type="submit"
             disabled={!file || loading}
-            className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.01]"
+            className="w-full py-3.5 btn-ai-primary disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold flex items-center justify-center gap-2"
           >
             <UploadCloud className="w-4 h-4" />
-            {loading ? "Processing Dataset..." : "Upload & Analyze Dataset"}
+            <span>{loading ? "Analyzing Dataset Intelligence..." : "Analyze Dataset →"}</span>
           </button>
         </form>
       </div>
 
-      {/* Built-in Preloaded Datasets Section */}
+      {/* Preloaded Benchmark Datasets */}
       <div className="space-y-4">
-        <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            1-Click Preloaded Enterprise Datasets
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Instant-load realistic datasets to evaluate data cleaning, AutoML models, forecasting, and anomaly detection.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> 1-Click Benchmark Datasets
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Test dynamic domain intelligence across education, retail, HR, banking, healthcare and telemetry.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {samples.map((s) => {
+          {benchmarkSamples.map((s) => {
             const Icon = s.icon;
             return (
               <button
                 key={s.key}
                 onClick={() => handleLoadSample(s.key)}
                 disabled={loading}
-                className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-700 text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-lg group flex flex-col justify-between"
+                className="glass-card p-5 rounded-2xl text-left flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${s.color} flex items-center justify-center text-white shadow-md`}>
-                      <Icon className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                      <Icon className="w-4 h-4" />
                     </div>
-                    {s.badge && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                        {s.badge}
-                      </span>
-                    )}
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-white/[0.04] text-purple-300 border border-purple-500/20">
+                      {s.domainBadge}
+                    </span>
                   </div>
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  <h3 className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">
                     {s.title}
                   </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                     {s.desc}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1 group-hover:underline">
-                  Load & Analyze <ArrowRight className="w-3.5 h-3.5" />
+                <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-purple-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                  <span>Load Dataset</span> <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </button>
             );

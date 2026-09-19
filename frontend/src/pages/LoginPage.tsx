@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDataset } from '../context/DatasetContext';
+import { Logo, LogoIcon } from '../components/common/Logo';
 
 export const LoginPage: React.FC = () => {
   const [identifier, setIdentifier] = useState('');
@@ -38,7 +39,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       await demoLogin();
-      await loadSampleDataset('sales_data');
+      await loadSampleDataset('student');
       navigate('/dashboard');
     } catch (err: any) {
       setError(err?.response?.data?.detail || "Failed to initialize demo session.");
@@ -48,9 +49,9 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 lg:p-8 transition-colors">
-      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
-        {/* Left Side: Brand Story & Neural Analytics Features */}
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 lg:p-8 transition-colors">
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 rounded-3xl bg-white border border-slate-200 shadow-xl overflow-hidden">
+        {/* Left Side: Brand Story & Analytics Features */}
         <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-950 text-white relative overflow-hidden">
           {/* Background Data Glow Particles */}
           <div className="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -59,11 +60,9 @@ export const LoginPage: React.FC = () => {
           {/* Brand Header */}
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                <BrainCircuit className="w-6 h-6 text-white" />
-              </div>
+              <LogoIcon size="lg" />
               <div>
-                <h1 className="text-xl font-extrabold tracking-tight">AI Insight</h1>
+                <h1 className="text-xl font-extrabold tracking-tight">AI DataSense</h1>
                 <p className="text-[11px] text-indigo-300 font-medium">Enterprise Analytics Engine</p>
               </div>
             </div>
@@ -72,7 +71,7 @@ export const LoginPage: React.FC = () => {
               AI-Native Intelligence & Predictive Analytics Platform
             </h2>
             <p className="text-xs text-slate-300 leading-relaxed max-w-md">
-              Ingest datasets, run automated profiling and cleaning, execute AutoML model training, forecast trends, detect anomalies, and query your data using ChatGPT-style natural language.
+              Ingest datasets, run automated profiling and cleaning, execute AutoML model training, forecast trends, detect anomalies, and query your data in natural language.
             </p>
           </div>
 
@@ -114,10 +113,7 @@ export const LoginPage: React.FC = () => {
         <div className="p-8 lg:p-12 flex flex-col justify-center">
           <div className="mb-6">
             <div className="lg:hidden flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
-                <BrainCircuit className="w-4 h-4" />
-              </div>
-              <span className="font-bold text-slate-900 dark:text-white">AI Insight</span>
+              <Logo size="sm" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Sign In</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">

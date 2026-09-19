@@ -42,7 +42,20 @@ def open_browser(url: str):
     except Exception:
         pass
 
+import subprocess
+
 if __name__ == "__main__":
+    # Ensure frontend production bundle is present
+    frontend_dir = root_dir / "frontend"
+    dist_dir = frontend_dir / "dist"
+    if not (dist_dir / "index.html").exists():
+        print("[INFO] Building frontend production bundle...")
+        try:
+            subprocess.run(["npm", "run", "build"], cwd=str(frontend_dir), shell=True, check=True)
+            print("[INFO] Frontend bundle built successfully.")
+        except Exception as e:
+            print(f"[WARN] Could not build frontend automatically: {e}")
+
     preferred_port = int(os.getenv("PORT", 8000))
     port = find_available_port(preferred_port)
     

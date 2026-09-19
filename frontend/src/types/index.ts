@@ -29,6 +29,11 @@ export interface Dataset {
   columns: number;
   column_names: string[];
   column_types: Record<string, string>;
+  domain?: string;
+  domain_confidence?: number;
+  domain_reason?: string;
+  domain_override?: string;
+  column_mapping?: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
@@ -131,16 +136,53 @@ export interface KPICardData {
   icon: string;
 }
 
-export interface DashboardOverviewResponse {
+export interface DynamicChartData {
+  id: string;
+  title: string;
+  subtitle?: string;
+  chart_type: 'bar' | 'line' | 'area' | 'donut' | 'pie' | 'scatter' | 'horizontal_bar';
+  x_axis?: string;
+  x_label?: string;
+  y_label?: string;
+  series?: string[];
+  data: any[];
+}
+
+export interface DomainAnalyticsResponse {
+  dataset_id: number;
+  domain: string;
+  domain_display_name: string;
+  confidence: number;
+  reason: string;
+  is_overridden: boolean;
+  detected_fields: Record<string, any>;
   kpis: KPICardData[];
-  sales_trend: { month: string; sales: number; orders: number }[];
-  revenue_analysis: { month: string; revenue: number; cost: number }[];
-  profit_trend: { month: string; profit: number; margin: number }[];
-  target_vs_actual: { period: string; actual: number; target: number; achievement: number }[];
-  customer_distribution: { segment: string; count: number; percentage: number; color: string }[];
-  product_performance: { product: string; revenue: number; share: number }[];
-  regional_performance: { region: string; sales: number; growth: number; share: number }[];
-  monthly_growth: { month: string; growth_rate: number }[];
+  charts: DynamicChartData[];
+  domain_insights: AIInsightSection[];
+  metrics: Record<string, any>;
+  recommendations: string[];
+}
+
+export interface DashboardOverviewResponse {
+  domain: string;
+  domain_display_name: string;
+  domain_confidence: number;
+  domain_reason: string;
+  domain_override?: string;
+  detected_fields: Record<string, any>;
+  kpis: KPICardData[];
+  dynamic_charts?: DynamicChartData[];
+  summary_metrics?: Record<string, any>;
+  ai_summary?: string;
+  // Legacy / fallback fields
+  sales_trend?: { month: string; sales: number; orders: number }[];
+  revenue_analysis?: { month: string; revenue: number; cost: number }[];
+  profit_trend?: { month: string; profit: number; margin: number }[];
+  target_vs_actual?: { period: string; actual: number; target: number; achievement: number }[];
+  customer_distribution?: { segment: string; count: number; percentage: number; color: string }[];
+  product_performance?: { product: string; revenue: number; share: number }[];
+  regional_performance?: { region: string; sales: number; growth: number; share: number }[];
+  monthly_growth?: { month: string; growth_rate: number }[];
 }
 
 export interface AIInsightSection {
@@ -313,3 +355,4 @@ export interface ActivityLog {
   ip_address?: string;
   created_at: string;
 }
+

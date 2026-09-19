@@ -51,7 +51,11 @@ def detect_ml_task(df: pd.DataFrame) -> MLTaskDetectionResponse:
         feature_candidates.append(str(col))
         
         col_lower = str(col).lower()
-        is_target_keyword = any(k in col_lower for k in ["target", "label", "churn", "price", "sales", "profit", "disease", "class", "status", "risk", "rating", "score", "total"])
+        is_target_keyword = any(k in col_lower for k in [
+            "target", "label", "churn", "price", "sales", "profit", "disease", "diagnosis",
+            "class", "status", "risk", "rating", "score", "total", "math", "science", "marks",
+            "salary", "performance", "attrition", "default", "conversion", "outcome", "efficiency"
+        ])
         
         if pd.api.types.is_numeric_dtype(series):
             if unique_cnt == 2:
@@ -93,7 +97,7 @@ def detect_ml_task(df: pd.DataFrame) -> MLTaskDetectionResponse:
         reason = f"Identified '{best_target}' as optimal target variable for {suggested_task.upper()} ({top_cand['unique_values']} distinct values)."
     else:
         suggested_task = "clustering"
-        reason = "No obvious target variable detected. Unsupervised clustering is recommended."
+        reason = "ML prediction is not applicable to this dataset because a suitable target variable was not detected. Unsupervised clustering or exploratory analysis is recommended."
         
     return MLTaskDetectionResponse(
         suggested_task=suggested_task,

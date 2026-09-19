@@ -22,7 +22,7 @@ def get_ai_insights_endpoint(
         raise HTTPException(status_code=404, detail="Dataset not found.")
         
     df = read_dataset_df(dataset.file_path, dataset.file_type)
-    insights = generate_ai_insights(df, dataset.id, dataset.name, custom_api_key=x_ai_key)
+    insights = generate_ai_insights(df, dataset.id, dataset.name, custom_api_key=x_ai_key, domain_override=dataset.domain_override or dataset.domain)
     
     try:
         analysis = Analysis(

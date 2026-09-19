@@ -3,7 +3,7 @@ import type {
   User, Dataset, DatasetProfile, ExploreQueryResponse, RecommendedChart,
   DashboardOverviewResponse, AIInsightsResponse, CorrelationResponse, HypothesisTestResponse,
   MLTrainResponse, MLPredictResponse, ClusteringResponse, ForecastResponse, AnomalyResponse,
-  AIChatMessage, AIChatResponse, AdminOverview, ActivityLog
+  AIChatMessage, AIChatResponse, AdminOverview, ActivityLog, DomainAnalyticsResponse
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -64,6 +64,12 @@ export const datasetApi = {
     }).then(r => r.data),
   loadSample: (sample_key: string = 'sales_data') =>
     apiClient.post<Dataset>('/datasets/sample', { sample_key }).then(r => r.data),
+  overrideDomain: (id: number, domain: string) =>
+    apiClient.post<Dataset>(`/datasets/${id}/domain-override`, { domain }).then(r => r.data),
+  updateColumnMapping: (id: number, column_mapping: Record<string, any>) =>
+    apiClient.post<Dataset>(`/datasets/${id}/column-mapping`, { column_mapping }).then(r => r.data),
+  getDomainAnalysis: (id: number) =>
+    apiClient.get<DomainAnalyticsResponse>(`/datasets/${id}/domain-analysis`).then(r => r.data),
   delete: (id: number) =>
     apiClient.delete(`/datasets/${id}`).then(r => r.data),
 };

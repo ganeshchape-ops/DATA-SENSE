@@ -1,0 +1,23 @@
+# Ignore heavy frontend node_modules & development artifacts from serverless bundle
+frontend/node_modules/
+frontend/.cache/
+node_modules/
+.git/
+.github/
+.vscode/
+.idea/
+
+# Local cache & virtual environments
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Local test artifacts & database
+test_e2e.py
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/reports/*
+!backend/reports/.gitkeep

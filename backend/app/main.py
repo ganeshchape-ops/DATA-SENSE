@@ -33,8 +33,7 @@ from backend.app.api.anomaly import router as anomaly_router
 from backend.app.api.reports import router as reports_router
 from backend.app.api.admin import router as admin_router
 
-# Create Database tables
-Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

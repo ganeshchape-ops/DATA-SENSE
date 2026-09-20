@@ -1,28 +1,41 @@
 import os
 from pathlib import Path
+from typing import List, Union
 from pydantic_settings import BaseSettings
 
 # Root paths
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-UPLOAD_DIR = BASE_DIR / "uploads"
-REPORTS_DIR = BASE_DIR / "reports"
+IS_VERCEL = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
 
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+if IS_VERCEL:
+    UPLOAD_DIR = Path("/tmp/uploads")
+    REPORTS_DIR = Path("/tmp/reports")
+else:
+    UPLOAD_DIR = BASE_DIR / "uploads"
+    REPORTS_DIR = BASE_DIR / "reports"
+
+try:
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "AI Insight"
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "DATA-SENSE")
     PROJECT_FULL_NAME: str = "AI-Native Enterprise Intelligence & Predictive Analytics Platform"
     VERSION: str = "2.0.0"
     API_V1_STR: str = "/api"
     
     # Security
-    JWT_SECRET: str = os.getenv("JWT_SECRET", "ai-insight-enterprise-secret-key-2026-production-grade")
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "datasense-enterprise-secret-key-2026-production-grade")
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/datasense.db")
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        "sqlite:////tmp/datasense.db" if IS_VERCEL else f"sqlite:///{BASE_DIR}/datasense.db"
+    )
     
     # SMS / OTP Configuration (Twilio / MSG91 / Firebase)
     SMS_PROVIDER: str = os.getenv("SMS_PROVIDER", "auto")  # auto, twilio, msg91, dev

@@ -10,7 +10,7 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-# Add backend directory to sys.path
+# Add backend directory and root directory to sys.path
 root_dir = Path(__file__).resolve().parent
 backend_dir = root_dir / "backend"
 
@@ -19,32 +19,35 @@ if str(backend_dir) not in sys.path:
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-import uvicorn
-import threading
-import webbrowser
-import time
-import socket
+# Top-level FastAPI application instance for Vercel and ASGI runners
+from backend.app.main import app
 
-def is_port_in_use(port: int) -> bool:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(('127.0.0.1', port)) == 0
-
-def find_available_port(start_port: int = 8000, max_attempts: int = 20) -> int:
-    for port in range(start_port, start_port + max_attempts):
-        if not is_port_in_use(port):
-            return port
-    return start_port
-
-def open_browser(url: str):
-    time.sleep(1.5)
-    try:
-        webbrowser.open(url)
-    except Exception:
-        pass
-
-import subprocess
-
+# Local development and standalone server runner
 if __name__ == "__main__":
+    import uvicorn
+    import threading
+    import webbrowser
+    import time
+    import socket
+    import subprocess
+
+    def is_port_in_use(port: int) -> bool:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(('127.0.0.1', port)) == 0
+
+    def find_available_port(start_port: int = 8000, max_attempts: int = 20) -> int:
+        for port in range(start_port, start_port + max_attempts):
+            if not is_port_in_use(port):
+                return port
+        return start_port
+
+    def open_browser(url: str):
+        time.sleep(1.5)
+        try:
+            webbrowser.open(url)
+        except Exception:
+            pass
+
     # Ensure frontend production bundle is present
     frontend_dir = root_dir / "frontend"
     dist_dir = frontend_dir / "dist"
@@ -58,10 +61,11 @@ if __name__ == "__main__":
 
     preferred_port = int(os.getenv("PORT", 8000))
     port = find_available_port(preferred_port)
-    
+    os.environ["PORT"] = str(port)
+
     url = f"http://127.0.0.1:{port}"
     print(f"\n==================================================================")
-    print(f"  AI Insight -- AI-Native Enterprise Predictive Analytics Platform")
+    print(f"  DATA-SENSE -- AI-Native Enterprise Predictive Analytics Platform")
     print(f"  Web Dashboard: {url}")
     print(f"  Swagger Docs:  {url}/docs")
     print(f"  ReDoc Docs:    {url}/redoc")

@@ -35,6 +35,9 @@ backend/reports/*
 .env
 .env.local
 
+# Vercel
+.vercel/
+
 # Node / Frontend
 frontend/node_modules/
 frontend/dist/

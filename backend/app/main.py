@@ -84,3 +84,24 @@ if __name__ == "__main__":
         port=port
     )
 from backend.app.api.auth import router as auth_router
+
+app = FastAPI(
+    title="DATA-SENSE",
+    version="2.0.0",
+    description="AI-Native Enterprise Intelligence & Predictive Analytics Platform",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+app.include_router(
+    auth_router,
+    prefix="/api"
+)

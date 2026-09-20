@@ -160,46 +160,4 @@ if __name__ == "__main__":
     print(f"\nAI Insight running on http://127.0.0.1:{port}\n")
     uvicorn.run("backend.app.main:app", host="127.0.0.1", port=port, reload=True)
 
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def home():
-    return {"message": "DATA-SENSE API"}
-
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def home():
-    return {
-        "status": "success",
-        "message": "DATA-SENSE API is running"
-    }
-
-@app.get("/health")
-def health():
-    return {
-        "status": "healthy"
-    }
-
-
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def home():
-    return {
-        "status": "success",
-        "message": "DATA-SENSE API is running"
-    }
-
-@app.get("/health")
-def health():
-    return {
-        "status": "healthy"
-    }
 

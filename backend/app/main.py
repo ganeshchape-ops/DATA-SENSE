@@ -159,3 +159,11 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     print(f"\nAI Insight running on http://127.0.0.1:{port}\n")
     uvicorn.run("backend.app.main:app", host="127.0.0.1", port=port, reload=True)
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {"message": "DATA-SENSE API"}

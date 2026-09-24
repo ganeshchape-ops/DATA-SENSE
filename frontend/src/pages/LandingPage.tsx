@@ -15,8 +15,12 @@ export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleQuickDemo = async () => {
-    await demoLogin();
-    await loadSampleDataset('student');
+    try {
+      await demoLogin();
+      await loadSampleDataset('student');
+    } catch (err) {
+      console.warn("Direct navigation to dashboard:", err);
+    }
     navigate('/dashboard');
   };
 

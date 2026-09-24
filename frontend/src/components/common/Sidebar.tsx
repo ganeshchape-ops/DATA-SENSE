@@ -41,8 +41,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onClose }) => {
     {
       heading: "Data",
       items: [
-        { label: 'Datasets', path: '/upload', icon: UploadCloud },
-        { label: 'Data Explorer', path: '/explorer', icon: Database },
+        { label: 'Upload Dataset', path: '/upload', icon: UploadCloud },
+        { label: 'Data Preview', path: '/explorer', icon: Database },
+        { label: 'Data Quality & Profiler', path: '/profiler', icon: ShieldCheck },
         { label: 'Data Cleaning', path: '/cleaning', icon: Wand2 },
       ]
     },

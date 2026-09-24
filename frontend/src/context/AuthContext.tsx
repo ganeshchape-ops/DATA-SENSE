@@ -28,10 +28,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const userData = await authApi.getMe();
           setUser(userData);
         } catch {
-          localStorage.removeItem('ai_insight_token');
-          localStorage.removeItem('datasense_token');
-          setToken(null);
-          setUser(null);
+          if (storedToken.includes('demo')) {
+            const { MOCK_DEMO_USER } = await import('../data/mockData');
+            setUser(MOCK_DEMO_USER);
+          } else {
+            localStorage.removeItem('ai_insight_token');
+            localStorage.removeItem('datasense_token');
+            setToken(null);
+            setUser(null);
+          }
         }
       }
       setIsLoading(false);
@@ -56,8 +61,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const demoLogin = async () => {
-    const res = await authApi.demoLogin();
-    setAuthToken(res.access_token, res.user);
+    try {
+      const res = await authApi.demoLogin();
+      setAuthToken(res.access_token, res.user);
+    } catch (err) {
+      console.warn("Backend API not reachable. Initializing demo explorer session in offline mode.", err);
+      const { MOCK_DEMO_USER } = await import('../data/mockData');
+      setAuthToken('demo-session-token-datasense-ai', MOCK_DEMO_USER);
+    }
   };
 
   const logout = () => {

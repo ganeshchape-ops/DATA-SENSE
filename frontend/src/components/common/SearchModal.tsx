@@ -54,7 +54,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     item.desc.toLowerCase().includes(query.toLowerCase())
   );
 
-  const filteredDatasets = datasets.filter(d =>
+  const filteredDatasets = datasets.filter((d: any) =>
     d.name.toLowerCase().includes(query.toLowerCase())
   );
 
@@ -94,7 +94,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                 Datasets ({filteredDatasets.length})
               </div>
               <div className="space-y-1">
-                {filteredDatasets.map(d => (
+                {filteredDatasets.map((d: any) => (
                   <button
                     key={d.id}
                     onClick={() => handleSelect('/explorer')}

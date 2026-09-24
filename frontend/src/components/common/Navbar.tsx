@@ -92,7 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       No datasets loaded yet.
                     </div>
                   ) : (
-                    datasets.map((d) => (
+                    datasets.map((d: any) => (
                       <button
                         key={d.id}
                         onClick={() => {

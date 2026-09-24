@@ -1,12 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   UploadCloud, FileSpreadsheet, Sparkles, CheckCircle2, AlertCircle,
-  Database, ShoppingCart, Users, Home, HeartPulse, LineChart,
-  BarChart3, Zap, ArrowRight, ShieldCheck, FileCode, GraduationCap,
-  Landmark, Briefcase, ArrowUp
+  Database, ArrowUp, ArrowRight, ShieldCheck, Zap, FileText
 } from 'lucide-react';
-import { datasetApi, analyticsApi } from '../services/api';
 import { useDataset } from '../context/DatasetContext';
 
 export const UploadPage: React.FC = () => {
@@ -15,10 +12,11 @@ export const UploadPage: React.FC = () => {
   const [datasetName, setDatasetName] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [statusMessage, setStatusMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { refreshDatasets, setActiveDataset, loadSampleDataset } = useDataset();
+  const { uploadAndProcessFile, loadSampleDataset } = useDataset();
   const navigate = useNavigate();
 
   const handleDrag = (e: React.DragEvent) => {
@@ -51,7 +49,11 @@ export const UploadPage: React.FC = () => {
     const validExtensions = ['.csv', '.xlsx', '.xls', '.json'];
     const hasValidExt = validExtensions.some(ext => f.name.toLowerCase().endsWith(ext));
     if (!hasValidExt) {
-      setError("Unsupported file format. Please upload a .CSV, .XLSX, .XLS, or .JSON file.");
+      setError("Unable to analyze this file. Please upload a valid CSV, Excel, or JSON file.");
+      return;
+    }
+    if (f.size === 0) {
+      setError("The uploaded dataset is empty.");
       return;
     }
     if (f.size > 50 * 1024 * 1024) {
@@ -72,134 +74,84 @@ export const UploadPage: React.FC = () => {
     }
     setLoading(true);
     setError(null);
-    setUploadProgress(25);
-
-    const formData = new FormData();
-    formData.append('file', file);
-    if (datasetName.trim()) {
-      formData.append('dataset_name', datasetName.trim());
-    }
 
     try {
-      setUploadProgress(65);
-      const created = await datasetApi.upload(formData);
+      setStatusMessage("Reading and validating dataset structure...");
+      setUploadProgress(20);
+      await new Promise(r => setTimeout(r, 150));
+
+      setStatusMessage("Detecting column topologies and mathematical distributions...");
+      setUploadProgress(50);
+      await new Promise(r => setTimeout(r, 150));
+
+      setStatusMessage("Synthesizing empirical AI insights & correlations...");
+      setUploadProgress(85);
+
+      await uploadAndProcessFile(file);
+
       setUploadProgress(100);
-      await refreshDatasets();
-      setActiveDataset(created);
+      setStatusMessage("Analysis complete!");
+      await new Promise(r => setTimeout(r, 200));
+
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Failed to upload and profile dataset.");
+      setError(err?.message || "Unable to analyze this file. Please upload a valid CSV, Excel, or JSON file.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLoadSample = async (key: string) => {
+  const handleBenchmarkSample = async (key: string) => {
     setLoading(true);
     setError(null);
     try {
-      const created = await loadSampleDataset(key);
-      setActiveDataset(created);
+      setStatusMessage("Loading verified benchmark dataset...");
+      setUploadProgress(60);
+      await loadSampleDataset(key);
+      setUploadProgress(100);
       navigate('/dashboard');
     } catch (err: any) {
-      setError("Failed to generate sample dataset.");
+      setError("Failed to load benchmark dataset.");
     } finally {
       setLoading(false);
     }
   };
-
-  const benchmarkSamples = [
-    {
-      key: "student",
-      title: "Student Academic Performance",
-      domainBadge: "Education",
-      desc: "500 Students • Dynamic Subject Detection, Pass/Fail Rates, Grade Bands, Attendance Analysis",
-      icon: GraduationCap,
-      badge: "Benchmark #1",
-      color: "from-purple-600 to-indigo-600"
-    },
-    {
-      key: "ecommerce_sales",
-      title: "E-Commerce Commercial Sales",
-      domainBadge: "E-Commerce",
-      desc: "500 Transactions • Revenue, Margin, Profit, Discounts, Customer Ratings, Returns",
-      icon: ShoppingCart,
-      badge: "Benchmark #2",
-      color: "from-emerald-600 to-teal-600"
-    },
-    {
-      key: "employee_data",
-      title: "HR Workforce & Salary Analytics",
-      domainBadge: "HR",
-      desc: "400 Employees • Department Headcount, Compensation Tiers, Tenure, Attrition Rate",
-      icon: Briefcase,
-      badge: "Benchmark #3",
-      color: "from-purple-600 to-pink-600"
-    },
-    {
-      key: "banking_data",
-      title: "Banking & Credit Risk Portfolio",
-      domainBadge: "Banking",
-      desc: "450 Accounts • Credit Scores, Account Balances, Loan Default Probability, Delinquency",
-      icon: Landmark,
-      badge: "Benchmark #4",
-      color: "from-amber-600 to-orange-600"
-    },
-    {
-      key: "generic_data",
-      title: "Universal Tabular Telemetry",
-      domainBadge: "Generic",
-      desc: "350 Sensor Readings • Temperatures, Pressures, Vibrations, System Efficiency (Zero hardcoding)",
-      icon: Zap,
-      badge: "Benchmark #5",
-      color: "from-slate-600 to-slate-800"
-    },
-    {
-      key: "heart",
-      title: "Patient Cohort Demographics",
-      domainBadge: "Healthcare",
-      desc: "350 Demographic Records • Resting BP, Cholesterol, Max HR, Demographic distributions",
-      icon: HeartPulse,
-      badge: "Clinical",
-      color: "from-rose-600 to-red-600"
-    },
-  ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in-scale pb-16">
       {/* Header */}
-      <div className="glass-card p-6 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-6 bg-white border border-slate-200/90 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5 mb-1">
-            <UploadCloud className="w-3.5 h-3.5" /> Data Ingestion Pipeline
+          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 flex items-center gap-1.5 mb-1">
+            <UploadCloud className="w-4 h-4" /> Data Ingestion Pipeline
           </span>
-          <h1 className="text-2xl font-black text-white tracking-tight">
-            Ingest Any Dataset
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            Upload & Analyze Dataset
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Automatic schema recognition, multi-domain inference, and dynamic statistical profiling.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Automatic schema recognition, numerical profiling, outlier detection, and strict AI intelligence.
           </p>
         </div>
 
         <button
-          onClick={() => handleLoadSample('student')}
+          onClick={() => handleBenchmarkSample('student')}
           disabled={loading}
-          className="btn-ai-primary px-4 py-2 text-xs font-bold flex items-center gap-1.5 shrink-0"
+          className="btn-secondary px-4 py-2 text-xs font-bold flex items-center gap-1.5 shrink-0"
         >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Launch Academic Demo</span>
+          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+          <span>Load Student Demo</span>
         </button>
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2.5">
+        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2.5">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Large Centered Drag-and-Drop Card */}
-      <div className="glass-card-glow p-8 sm:p-12 rounded-3xl relative overflow-hidden text-center">
+      <div className="p-8 sm:p-12 rounded-3xl bg-white border border-slate-200 shadow-sm relative overflow-hidden text-center">
         <form onSubmit={handleUpload} className="space-y-6">
           <div
             onDragEnter={handleDrag}
@@ -209,10 +161,10 @@ export const UploadPage: React.FC = () => {
             onClick={() => fileInputRef.current?.click()}
             className={`border-2 border-dashed rounded-3xl p-10 sm:p-14 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center relative ${
               dragActive
-                ? 'border-purple-500 bg-purple-500/10 scale-[1.01]'
+                ? 'border-indigo-600 bg-indigo-50/50 scale-[1.01]'
                 : file
-                ? 'border-emerald-500/60 bg-emerald-500/5'
-                : 'border-white/[0.1] hover:border-purple-500/50 hover:bg-white/[0.02]'
+                ? 'border-emerald-500 bg-emerald-50/40'
+                : 'border-slate-200 hover:border-indigo-400 hover:bg-slate-50/60'
             }`}
           >
             <input
@@ -223,36 +175,38 @@ export const UploadPage: React.FC = () => {
               className="hidden"
             />
 
-            {/* Glowing Icon */}
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 ${
-              file ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-purple-500/15 text-purple-400 border border-purple-500/25 shadow-lg shadow-purple-500/15'
+            {/* Icon */}
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-transform duration-300 ${
+              file ? 'bg-emerald-100 text-emerald-600' : 'bg-indigo-50 text-indigo-600'
             }`}>
-              {file ? <CheckCircle2 className="w-8 h-8" /> : <ArrowUp className="w-8 h-8 animate-bounce" />}
+              {file ? <CheckCircle2 className="w-8 h-8" /> : <UploadCloud className="w-8 h-8 animate-bounce" />}
             </div>
 
             {file ? (
               <div className="space-y-1.5">
-                <p className="text-base font-bold text-white font-sans">{file.name}</p>
-                <p className="text-xs text-emerald-400">
-                  {(file.size / (1024 * 1024)).toFixed(2)} MB • File validated & ready to analyze
+                <p className="text-base font-bold text-slate-900 font-sans">{file.name}</p>
+                <p className="text-xs text-emerald-600 font-medium">
+                  {(file.size / 1024).toFixed(1)} KB • File validated & ready to analyze
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                <p className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
                   Drop your dataset here
                 </p>
-                <p className="text-xs text-slate-400 font-mono">
-                  CSV, XLSX, XLS
-                </p>
-                <p className="text-xs text-slate-500">or</p>
-                <div className="pt-1">
-                  <span className="btn-ai-secondary px-4 py-2 text-xs font-semibold inline-block">
-                    [ Browse Files ]
+                <div className="flex items-center justify-center gap-2 text-xs text-slate-500 font-medium">
+                  <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200">CSV</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200">XLSX</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200">XLS</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200">JSON</span>
+                </div>
+                <div className="pt-2">
+                  <span className="btn-secondary px-4 py-2 text-xs font-semibold inline-block">
+                    Browse Files
                   </span>
                 </div>
-                <p className="text-xs text-purple-300 font-medium pt-3 max-w-sm mx-auto">
-                  AI will automatically understand your dataset structure.
+                <p className="text-[11px] text-slate-400 pt-2">
+                  Supports up to 50MB • All processing runs with 100% data isolation
                 </p>
               </div>
             )}
@@ -260,28 +214,28 @@ export const UploadPage: React.FC = () => {
 
           {file && (
             <div className="text-left space-y-1">
-              <label className="text-xs font-semibold text-slate-300">
-                Dataset Title / Name
+              <label className="text-xs font-semibold text-slate-700">
+                Dataset Title
               </label>
               <input
                 type="text"
                 value={datasetName}
                 onChange={(e) => setDatasetName(e.target.value)}
-                placeholder="E.g. Student Academic Records 2026"
-                className="w-full px-4 py-2.5 bg-[#07090E] border border-white/[0.1] rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
+                placeholder="Dataset Name"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-indigo-500"
               />
             </div>
           )}
 
           {loading && (
             <div className="space-y-2 text-left">
-              <div className="flex justify-between text-xs font-semibold text-slate-400">
-                <span>Understanding dataset & computing domain models...</span>
-                <span className="text-purple-400 font-mono">{uploadProgress}%</span>
+              <div className="flex justify-between text-xs font-semibold text-slate-600">
+                <span>{statusMessage || "Analyzing dataset..."}</span>
+                <span className="text-indigo-600 font-mono">{uploadProgress}%</span>
               </div>
-              <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300"
+                  className="h-full bg-indigo-600 transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
@@ -291,60 +245,22 @@ export const UploadPage: React.FC = () => {
           <button
             type="submit"
             disabled={!file || loading}
-            className="w-full py-3.5 btn-ai-primary disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold flex items-center justify-center gap-2"
+            className="w-full py-3.5 btn-primary disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold flex items-center justify-center gap-2"
           >
             <UploadCloud className="w-4 h-4" />
-            <span>{loading ? "Analyzing Dataset Intelligence..." : "Analyze Dataset →"}</span>
+            <span>{loading ? "Analyzing Dataset Intelligence..." : "Analyze Dataset"}</span>
           </button>
         </form>
       </div>
 
-      {/* Preloaded Benchmark Datasets */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> 1-Click Benchmark Datasets
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Test dynamic domain intelligence across education, retail, HR, banking, healthcare and telemetry.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {benchmarkSamples.map((s) => {
-            const Icon = s.icon;
-            return (
-              <button
-                key={s.key}
-                onClick={() => handleLoadSample(s.key)}
-                disabled={loading}
-                className="glass-card p-5 rounded-2xl text-left flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-white/[0.04] text-purple-300 border border-purple-500/20">
-                      {s.domainBadge}
-                    </span>
-                  </div>
-                  <h3 className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors">
-                    {s.title}
-                  </h3>
-                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                    {s.desc}
-                  </p>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-white/[0.06] text-[11px] text-purple-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  <span>Load Dataset</span> <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              </button>
-            );
-          })}
+      {/* Verified Data Isolation Notice */}
+      <div className="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-100 flex items-start gap-3 text-xs text-slate-600">
+        <ShieldCheck className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+        <div>
+          <h4 className="font-bold text-slate-900">Strict Data Isolation Guarantee</h4>
+          <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+            Every metric, chart, outlier, correlation, and AI explanation is calculated exclusively from the currently uploaded file. When a new file is uploaded, all previous datasets, tables, and AI caches are instantly cleared.
+          </p>
         </div>
       </div>
     </div>
